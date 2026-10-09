@@ -1,8 +1,7 @@
 import { AxiosError, AxiosHeaders } from 'axios';
 import { describe, expect, it } from 'vitest';
-import { ApiError, normalizeApiError, readApiData } from '@/shared/lib/api-error';
-import { apiErrorResponse } from '@/shared/lib/api-response';
-import { parseViewerData } from '@/features/home/api/home-contract';
+import { ApiError, normalizeApiError } from '@/shared/lib/api-error';
+import { ApiContractError, apiErrorResponse } from '@/shared/lib/api-response';
 
 describe('API errors', () => {
   it('preserves the message, status and details of an HTTP error', () => {
@@ -22,6 +21,8 @@ describe('API errors', () => {
   it('distinguishes timeout from a connection failure', () => {
     const timeout = normalizeApiError(new AxiosError('timeout', 'ECONNABORTED'));
     const offline = normalizeApiError(new AxiosError('network', 'ERR_NETWORK'));
+    expect(timeout).toMatchObject({ status: 504 });
+    expect(offline).toMatchObject({ status: 502 });
     expect(timeout.message).toContain('بیش از حد طول کشید');
     expect(offline.message).toContain('اتصال اینترنت');
   });
@@ -31,24 +32,17 @@ describe('API errors', () => {
     expect(normalizeApiError(error)).toBe(error);
   });
 
-  it('converts invalid successful response data to a displayable contract error', () => {
-    expect(() =>
-      readApiData({ meta: { success: true }, data: { signedIn: true } }, parseViewerData),
-    ).toThrow('پاسخ سرویس معتبر نیست');
-    try {
-      readApiData({ meta: { success: true }, data: null }, parseViewerData);
-    } catch (error) {
-      expect(error).toBeInstanceOf(ApiError);
-      expect(error).toMatchObject({ status: 502 });
-    }
+  it('converts contract failures into a displayable 502 error', () => {
+    const cause = new ApiContractError('Invalid viewer');
+    expect(normalizeApiError(cause)).toMatchObject({
+      status: 502,
+      message: 'پاسخ سرویس معتبر نیست. دوباره تلاش کنید.',
+      cause,
+    });
   });
 
-  it('does not disguise unexpected parser bugs as network errors', () => {
-    const bug = new Error('Unexpected parser bug');
-    expect(() =>
-      readApiData({ meta: { success: true }, data: {} }, () => {
-        throw bug;
-      }),
-    ).toThrow(bug);
+  it('does not disguise unexpected programming errors', () => {
+    const bug = new TypeError('Unexpected parser bug');
+    expect(normalizeApiError(bug)).toBe(bug);
   });
 });

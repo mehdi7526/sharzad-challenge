@@ -2,7 +2,7 @@ import type { ApiErrorResponse } from '@/shared/types';
 
 export class ApiContractError extends Error {}
 
-export function parseApiResponse<T>(value: unknown, parse: (data: unknown) => T): T {
+export function parseApiResponse(value: unknown): unknown {
   if (
     typeof value !== 'object' ||
     value === null ||
@@ -30,7 +30,7 @@ export function parseApiResponse<T>(value: unknown, parse: (data: unknown) => T)
     )
       throw new ApiContractError('Invalid pagination');
   }
-  return parse(value.data);
+  return value.data;
 }
 
 export function parseApiErrorResponse(value: unknown): ApiErrorResponse | undefined {

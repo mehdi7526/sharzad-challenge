@@ -1,28 +1,27 @@
 import { NextResponse } from 'next/server';
+import { ApiError } from '@/shared/lib/api-error';
 import { apiErrorResponse } from '@/shared/lib/api-response';
 import type { ApiErrorResponse, ApiResponse } from '@/shared/types';
-import type { HomepageData } from '@/features/home/types';
 import { getHomepageData } from '@/features/home/api/home-server';
+import type { HomepageData } from '@/features/home/types';
 
 const headers = { 'Cache-Control': 'no-store' };
 
 export async function GET() {
   try {
-    const result = await getHomepageData();
-    return result.ok
-      ? NextResponse.json<ApiResponse<HomepageData>>(
-          { meta: { success: true }, data: result.data },
-          { headers },
-        )
-      : NextResponse.json<ApiErrorResponse>(
-          {
-            ...apiErrorResponse(result.message, result.status),
-            ...(result.details ? { meta: result.details } : {}),
-          },
-          { status: result.status, headers },
-        );
+    const response = await getHomepageData();
+    return NextResponse.json<ApiResponse<HomepageData>>(response, { headers });
   } catch (error) {
-    console.error('Unexpected homepage API error', error);
+    if (error instanceof ApiError) {
+      return NextResponse.json<ApiErrorResponse>(
+        {
+          ...apiErrorResponse(error.message, error.status ?? 502),
+          ...(error.details ? { meta: error.details } : {}),
+        },
+        { status: error.status ?? 502, headers },
+      );
+    }
+    console.error('Unexpected home API error', error);
     return NextResponse.json<ApiErrorResponse>(
       apiErrorResponse('خطای غیرمنتظره‌ای رخ داد. دوباره تلاش کنید.', 500, 'INTERNAL_ERROR'),
       { status: 500, headers },

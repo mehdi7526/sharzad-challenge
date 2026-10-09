@@ -33,16 +33,16 @@ These rules apply to this repository. Explicit user requests can change project 
 - Shared UI lives in `src/shared/components`, styles in `src/shared/styles`, request infrastructure in `src/shared/lib`, and general hooks in `src/shared/hooks`. Domain APIs stay in the feature's `api` folder. Do not introduce a `shared/api` or `shared/lib/http` layer for request infrastructure.
 - Use shared Ant Design components for controls and native HTML for simple containers and semantic regions. Add wrappers when they provide useful common behavior or an intentional public API.
 - Prefer explicit, short domain functions. Avoid speculative abstractions, needless import/export chains, empty folders, separate published packages, and unnecessary context or prop forwarding.
-- Keep TypeScript strict. Validate network JSON at the boundary; `unknown` is appropriate before validation. Avoid `any` and casts that merely assert a network response is valid.
+- Keep TypeScript strict. Endpoint payloads use TypeScript types without runtime domain schemas, following the requested PM/UL pattern. Validate the shared response envelope; `unknown` is appropriate at that boundary. Avoid `any` and casts that merely assert a network response is valid.
 - Keep documentation and agent instructions in English and product copy in Persian. Explain decisions in the user's language when reporting work.
 
 ## API and state boundaries
 
-- Initial homepage data is fetched by the Server Component through `home-server.ts` and the server request utility. Do not make the server call its own internal Route Handler over HTTP.
+- Initial homepage data is fetched by the Server Component through `home-server.ts` and an Axios instance built by `createApiRequest`. Server requests use the fetch adapter with `cache: no-store`. Do not make the server call its own internal Route Handler over HTTP.
 - Browser requests use the shared Axios instance and SWR through feature API functions and hooks. Route Handlers connect those browser requests to the backend.
 - Keep backend configuration server-side: `HOME_DATA_SOURCE` selects `mock` or `backend`, and `API_BASE_URL` configures the upstream address. The browser uses the relative `/api` base URL.
-- Keep response types and runtime validation aligned. Success uses `{ meta: { success: true }, data }`; errors carry `message`, `error_status`, `error_code`, and `error_fields` through the error envelope.
-- Keep API functions focused on requests and validated domain data. Normalize transport errors centrally, display browser notifications through `useErrorHandler`, and preserve inline errors with retry in the relevant UI. Unexpected errors must remain observable.
+- Keep response envelope types and runtime checks aligned. Success uses `{ meta: { success: true }, data }`; errors carry `message`, `error_status`, `error_code`, and `error_fields` through the error envelope.
+- Keep API functions short: call Axios and return `response.data` (`ApiResponse<T>`), as in the reference PM/UL projects. The shared success interceptor checks only the response envelope and preserves `AxiosResponse`; endpoint payloads are not validated at runtime. Normalize transport errors centrally, display browser notifications through `useErrorHandler`, and preserve inline errors with retry in the relevant UI. Unexpected errors must remain observable.
 - SWR owns API data, loading, errors, and refreshes. Zustand owns interactive UI state; do not copy API responses into it. Keep the store scoped to its provider.
 - Fixtures belong to `backend/mock` and are consumed by the mock implementation only. Application components, hooks, and stores must not import them. Unit tests should define their own small input data.
 - Both sources use HTTP. Never silently replace real backend failures with mock data. Keep scenarios explicit and deterministic; no random failures or forced latency in normal execution.

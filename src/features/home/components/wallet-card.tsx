@@ -3,7 +3,7 @@ import { ArrowLeft2 } from '@/shared/components/icons';
 import { ActionButton } from '@/shared/components/action-button';
 import { Text } from '@/shared/components/typography';
 import { useHomeStore } from '../model/home-store';
-import { useViewer } from '../api/use-viewer';
+import { useViewer } from '../hooks/use-viewer';
 export function WalletCard({ desktop = false }: { desktop?: boolean }) {
   const setPanel = useHomeStore((state) => state.setPanel);
   const { data } = useViewer();

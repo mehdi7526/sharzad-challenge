@@ -4,8 +4,8 @@ import { Dropdown, type MenuItems } from '@/shared/components/dropdown';
 import { ActionButton } from '@/shared/components/action-button';
 import { ArrowDown2 } from '@/shared/components/icons';
 import type { HomepageResult } from '../types';
-import { useHomepage } from '../api/use-homepage';
-import { useOpenService } from '../model/use-open-service';
+import { useHomepage } from '../hooks/use-homepage';
+import { useOpenService } from '../hooks/use-open-service';
 
 const menuClassName = `
   [&_.ant-dropdown-menu]:rounded-sm [&_.ant-dropdown-menu]:px-0 [&_.ant-dropdown-menu]:py-1

@@ -2,7 +2,7 @@
 
 ## Folder boundaries
 
-`src/app` contains only Next.js routes, layouts, loading UI, and error boundaries. The server-rendered page lives in `features/home/pages/home-page.tsx`; UI components, interactive state, TypeScript contracts, and domain requests live in the feature's `components`, `model`, `types`, and `api` folders. Shared Ant Design wrappers live in `shared/components`, styles in `shared/styles`, and general request utilities in `shared/lib`. This is the project's chosen structure; Next.js does not require a feature-based folder structure.
+`src/app` contains only Next.js routes, layouts, loading UI, and error boundaries. The server-rendered page lives in `features/home/pages/home-page.tsx`; UI components, interactive state, TypeScript contracts, and domain requests live in the feature's `components`, `hooks`, `model`, `types`, and `api` folders. Shared Ant Design wrappers live in `shared/components`, styles in `shared/styles`, and general request utilities in `shared/lib`. This is the project's chosen structure; Next.js does not require a feature-based folder structure.
 
 `backend/mock` is a standalone backend implemented with Node's built-in HTTP module. `fixtures.mts` is the only source of mock data, and only `server.mts` imports it. The frontend and hooks never import fixtures directly. Node runs `.mts` files using its native TypeScript type stripping, while TypeScript also checks them as part of the project. The mock has no separate framework, context, or published package.
 
@@ -12,9 +12,8 @@
 Initial page request:
 HomePage (Server Component)
   → getHomepageData
-  → getBackendData + fetch
+  → Axios (fetch adapter)
   → backend GET /home
-  → parseHomepageData
   → SSR + SWR fallbackData
 
 Viewer information after mount:
@@ -22,9 +21,8 @@ WalletCard / HomePanels
   → useViewer + SWR
   → getViewer + Axios
   → Next.js GET /api/viewer
-  → getViewerData + fetch
+  → getViewerData + Axios
   → backend GET /viewer
-  → parseViewerData
   → typed response, validated again in the browser
 ```
 
@@ -32,19 +30,21 @@ The server does not make an HTTP request to its own Route Handler for the initia
 
 ## Endpoint contracts
 
-`home-endpoints.ts` defines `/home` and `/viewer` in one place. Current GET requests have no query, body, or path parameters. The project response contract is: success is `{ meta: { success: true }, data: T }`, and an error is `{ meta: { success: false, error_code, error_fields }, message, error_status }`. Pagination is not added to non-paginated endpoints; it remains optional for list responses. Shared envelope types live in `shared/types/index.ts`; runtime validation lives in `shared/lib/api-response.ts`. The mock backend supports GET only; other methods return 405 with `Allow: GET`, and unknown paths return 404. Responses include `Cache-Control: no-store`.
+API functions use the literal paths `/home` and `/viewer`; SWR uses those same paths as cache keys. Current GET requests have no query, body, or path parameters. The project response contract is: success is `{ meta: { success: true }, data: T }`, and an error is `{ meta: { success: false, error_code, error_fields }, message, error_status }`. Pagination is not added to non-paginated endpoints; it remains optional for list responses. Shared envelope types live in `shared/types/index.ts`; runtime validation lives in `shared/lib/api-response.ts`. The mock backend supports GET only; other methods return 405 with `Allow: GET`, and unknown paths return 404. Responses include `Cache-Control: no-store`.
 
 `HomepageData` contains `services` and `banner`. Each service has a unique `id`, title, image, destination, optional badge, and optional submenu. The banner's `serviceId` references one of the services. An empty response must use `services: []` and `banner.serviceId: ''`.
 
-`ViewerData` is a discriminated union. When `signedIn: false`, the balance must be `null` and the unread notification count must be zero. When `signedIn: true`, the balance must be a non-negative number and the unread count a non-negative integer. Runtime validation enforces these rules. The signed-in fixture is for demonstration only.
+`ViewerData` is a discriminated union. When `signedIn: false`, the balance must be `null` and the unread notification count must be zero. When `signedIn: true`, the balance must be a non-negative number and the unread count a non-negative integer. TypeScript defines these variants; runtime domain validation is intentionally omitted. The signed-in fixture is for demonstration only.
 
-`home-contract.ts` accepts `unknown` only at the JSON validation boundary and returns typed objects without `any` or casts. Domain API functions return `Promise<HomepageData>`, `Promise<ViewerData>`, or `Promise<HomepageResult>`. Axios generics describe the expected compile-time contract; parsers verify the actual network response.
+Server and browser API functions return `Promise<ApiResponse<HomepageData>>` or `Promise<ApiResponse<ViewerData>>`. `HomepageResult` is only the initial UI state, constructed by the page. Axios generics describe the expected compile-time contract. Endpoint payloads are trusted without runtime schemas, following the requested PM/UL pattern.
 
 ## Request utilities and error handling
 
-`getBackendData<T>(path, parse)` in `shared/lib/backend-request.ts` is server-only. It uses `fetch` with `cache: no-store`, and infers the return type from the parser. Its timeout is eight seconds. Valid backend error statuses and messages, including `error_code` and `error_fields`, are preserved. Invalid JSON or a contract mismatch becomes 502; a timeout becomes 504. Domain parsing runs outside the transport error handler, so unexpected parser `TypeError` and `SyntaxError` exceptions remain observable. Configuration, URL, and programming errors are not hidden; they reach an error boundary or a Route Handler's 500 response.
+`createApiRequest` in `shared/lib/create-api-request.ts` creates Axios clients with common headers, timeout, and success/error interceptors. Success checks only the `{ meta, data }` envelope. It preserves the original `AxiosResponse`. Transport and contract failures become displayable `ApiError` objects; unexpected programming errors are not hidden. There is no `getBackendData` or `readApiData` call chain.
 
-The shared browser Axios instance in `shared/lib/api-request.ts` uses `/api` as its base URL and has an eleven-second timeout. The same file configures HTTP defaults and the response error interceptor; there is one browser client and no separate client factory. The success interceptor returns the original `AxiosResponse`; domain APIs request `ApiResponse<T>` and validate both the envelope and its data. Errors become `ApiError` instances with status and details. The flow does not serialize errors with `JSON.stringify`, use `any`, mutate Axios responses, or add fake authentication redirects. `normalizeApiError` provides the UI with consistent messages for valid Route Handler errors, timeouts, and connection failures. Feature code does not import Axios directly.
+Both `home-client.ts` and `home-server.ts` follow the reference PM/UL convention: call `apiRequest.get<ApiResponse<T>>`, return `response.data`. Consumers then read `response.data` for the domain payload. The browser client in `shared/lib/api-request.ts` uses `/api` and an eleven-second timeout. The server client lives in `home-server.ts`, uses absolute backend URLs from server configuration, and has an eight-second timeout with Axios’s fetch adapter and `fetchOptions: { cache: no-store }`. Neither client mutates shared defaults at request time.
+
+Valid upstream HTTP error statuses, messages, and details are preserved. Invalid JSON or an invalid response envelope returns 502; connection failures return 502; timeouts return 504. The initial page catches expected API errors to render the existing inline retry state. Route Handlers return the API envelope on success and translate errors into HTTP responses. SWR consumers extract the payload from the envelope; `useErrorHandler` displays notifications without storing duplicate API state. Feature code imports the configured client or factory, not Axios directly.
 
 ## Cache and loading
 
@@ -58,7 +58,7 @@ The shared browser Axios instance in `shared/lib/api-request.ts` uses `/api` as 
 
 With `HOME_DATA_SOURCE=mock`, `npm run dev` and `npm start` start both the standalone mock backend and frontend, and stop both when the runner exits. `npm run mock` starts only the backend; `npm run dev:frontend` starts only Next.js. The mock defaults to port 4000; `MOCK_PORT` and `API_BASE_URL` can be set explicitly.
 
-With `HOME_DATA_SOURCE=backend`, `API_BASE_URL` is required and the runner does not start the mock. Both sources use the same `fetch`, Axios, and parsers. There is no automatic fallback to fixtures. Compose defines two services; the frontend connects to `http://mock:4000` over the Docker network.
+With `HOME_DATA_SOURCE=backend`, `API_BASE_URL` is required and the runner does not start the mock. Both sources use the same Axios factory. There is no automatic fallback to fixtures. Compose defines two services; the frontend connects to `http://mock:4000` over the Docker network.
 
 `MOCK_HOME_SCENARIO` supports `normal`, `slow`, `empty`, and `error`. `MOCK_VIEWER_SCENARIO` supports `normal`, `slow`, `signed-in`, and `error`. The normal scenario has no random delay or error; `slow` adds a fixed 800 ms delay, and `error` returns a 503 from the mock backend. Scenarios are configured through environment variables; there is no public query parameter to change them.
 
@@ -78,13 +78,13 @@ The `desktop` and `mobile` variants retain the original 1024 px breakpoint; `des
 
 ## Verification and limitations
 
-Playwright covers server-rendered homepage data, the browser viewer request, errors and account retries, invalid responses, destinations, and mobile/desktop scrolling. E2E runs use port 4210 for the mock backend and 3210 for the frontend to avoid conflicting with the development server.
+Playwright covers server-rendered homepage data, the browser viewer request, errors and account retries, destinations, and mobile/desktop scrolling. E2E runs use port 4210 for the mock backend and 3210 for the frontend to avoid conflicting with the development server.
 
 The challenge's backend contract has not been provided. The mock simulates only the read-only endpoints required by the UI. Sign-in, wallet, and notification data are demonstrative. Payments, real authentication, and destination pages are not implemented; fixed destinations navigate to the reference site.
 
 ## API readability and error handling
 
-Functions in `home-client.ts` make typed requests and return domain data. `readApiData` in `shared/lib/api-error.ts` validates the response envelope and data, then converts contract errors into one displayable error. The API function returns domain data directly, so UI code does not depend on `response.data.data`.
+API functions make typed Axios requests and return `response.data`, the `ApiResponse<T>` envelope. The shared response interceptor checks the envelope; endpoint payloads have TypeScript types without runtime domain validation. SWR fetchers read the envelope’s `data` field, so components receive domain data without parsing.
 
 `shared/hooks/use-error-handler.ts` follows the `handleError` pattern used in pm and displays messages through Ant Design. Data hooks connect it to SWR's `onError` callback. A failed request or retry shows a notification, while the inline error and retry control remain visible. Calling `mutate()` without arguments lets SWR retain the request error, so UI code does not rely on `catch` to detect failure. Data, loading, and request errors remain in SWR; the error handler does not keep duplicate state. Errors use the typed `ApiError`; JSON is not serialized into or parsed from `Error.message`. The hook is not used for server-side fetching.
 

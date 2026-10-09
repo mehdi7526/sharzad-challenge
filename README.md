@@ -39,10 +39,10 @@ Compose builds separate `web` and `mock` services. The web service connects to t
 
 The default setting is `HOME_DATA_SOURCE=mock`, and the frontend always retrieves data over HTTP. Fixtures live only in `backend/mock/fixtures.mts` and are consumed only by the standalone mock backend.
 
-| Backend endpoint | Internal Next.js endpoint | Response                                                    | Used for                                                                   |
-| ---------------- | ------------------------- | ----------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `GET /home`      | `GET /api/home`           | `HomepageData`: services, submenus, and banner              | Initial fetch with `fetch` in a Server Component; retry with Axios and SWR |
-| `GET /viewer`    | `GET /api/viewer`         | `ViewerData`: demo sign-in state, wallet, and notifications | Browser request after mount with Axios and SWR                             |
+| Backend endpoint | Internal Next.js endpoint | Response                                                    | Used for                                                                 |
+| ---------------- | ------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `GET /home`      | `GET /api/home`           | `HomepageData`: services, submenus, and banner              | Initial fetch with Axios in a Server Component; retry with Axios and SWR |
+| `GET /viewer`    | `GET /api/viewer`         | `ViewerData`: demo sign-in state, wallet, and notifications | Browser request after mount with Axios and SWR                           |
 
 For the initial render, the Next.js server requests `GET {API_BASE_URL}/home` directly. The browser calls an internal Next.js API, whose Route Handler connects to the real or mock backend. The backend URL and configuration are not exposed to the browser. This flow does not implement real authentication or payments.
 
@@ -60,7 +60,7 @@ Configure mock scenarios in `.env.local`. Restart the server after changing them
 - `MOCK_VIEWER_SCENARIO`: `normal` (signed out), `slow`, `signed-in` (demo account with a balance of 125,000 and two notifications), or `error`.
 - The normal scenario has no delay. `slow` adds a fixed 800 ms delay, and `error` returns a 503 from the mock backend. Next.js preserves backend error statuses; connection failures return 502 and timeouts return 504.
 
-TypeScript contracts live in `features/home/types`, and runtime validation lives in `api/home-contract.ts`. Axios responses use the explicit `HomepageData` or `ViewerData` types; network data is validated before use. See [docs/architecture.md](docs/architecture.md) for the request, error, and cache flows.
+TypeScript contracts live in `features/home/types`. Axios requests use `ApiResponse<HomepageData>` or `ApiResponse<ViewerData>`. The shared interceptor checks the response envelope; endpoint payloads are trusted without runtime domain validation. See [docs/architecture.md](docs/architecture.md) for the request, error, and cache flows.
 
 ## Loading and error handling
 
@@ -86,10 +86,10 @@ The interview backend contract has not been provided. The standalone mock curren
 
 ## API response contract
 
-The standalone backend lives in `backend/mock`. Successful responses use `{ meta: { success: true }, data: T }`; errors use `{ meta: { success: false, error_code, error_fields }, message, error_status }`. Pagination applies to paginated lists; these two endpoints do not return it. Shared response types live in `src/shared/types/index.ts`; runtime validation lives in `src/shared/lib/api-response.ts`. The Axios interceptor preserves `AxiosResponse`; domain API functions use `ApiResponse<T>` and validate the envelope and data. `ApiError` preserves the message, status, and error details.
+The standalone backend lives in `backend/mock`. Successful responses use `{ meta: { success: true }, data: T }`; errors use `{ meta: { success: false, error_code, error_fields }, message, error_status }`. Pagination applies to paginated lists; these two endpoints do not return it. Shared response types live in `src/shared/types/index.ts`; runtime validation lives in `src/shared/lib/api-response.ts`. The Axios interceptor preserves `AxiosResponse` and checks the shared response envelope, without endpoint-specific parsers. API functions return `response.data` as `ApiResponse<T>`, following the reference PM/UL convention; consumers read the payload from its `data` field. `ApiError` preserves the message, status, and error details.
 
 ## Unit and browser tests
 
-`npm run test:unit` runs Vitest unit tests in the Node environment without a server or browser. Tests live in `tests/unit` and cover homepage and viewer validation, success and error response contracts, network error normalization, and service destination resolution. Test data is independent of backend fixtures. These logic tests do not need jsdom or React Testing Library.
+`npm run test:unit` runs Vitest unit tests in the Node environment without a server or browser. Tests live in `tests/unit` and cover success and error response envelopes, network error normalization, and service destination resolution. Test data is independent of backend fixtures. These logic tests do not need jsdom or React Testing Library.
 
 `npm run test:e2e` runs Playwright browser tests and requires a production build. Playwright ignores the unit-test folder, and Vitest only reads that folder, so each runner executes only its own tests. DOM behavior, retries, and scrolling are checked with E2E tests.

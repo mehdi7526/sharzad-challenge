@@ -6,8 +6,8 @@ import { Button } from '@/shared/components/button';
 import { Flex } from '@/shared/components/flex';
 import { Link, Paragraph, Text, Title } from '@/shared/components/typography';
 import type { HomepageResult, Service } from '../types';
-import { useHomepage } from '../api/use-homepage';
-import { serviceDestination, useOpenService } from '../model/use-open-service';
+import { useHomepage } from '../hooks/use-homepage';
+import { serviceDestination, useOpenService } from '../hooks/use-open-service';
 
 const serviceItemClassName = `
   mb-4 flex min-w-0 w-full flex-col items-center justify-start gap-0 text-app-black

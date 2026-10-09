@@ -9,11 +9,8 @@ const headers = { 'Cache-Control': 'no-store' };
 
 export async function GET() {
   try {
-    const data = await getViewerData();
-    return NextResponse.json<ApiResponse<ViewerData>>(
-      { meta: { success: true }, data },
-      { headers },
-    );
+    const response = await getViewerData();
+    return NextResponse.json<ApiResponse<ViewerData>>(response, { headers });
   } catch (error) {
     if (error instanceof ApiError) {
       return NextResponse.json<ApiErrorResponse>(

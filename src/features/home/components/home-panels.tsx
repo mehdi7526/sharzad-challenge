@@ -9,7 +9,7 @@ import { Modal } from '@/shared/components/modal';
 import { Paragraph, Title } from '@/shared/components/typography';
 import { useMessage } from '@/shared/components/use-message';
 import { useHomeStore } from '../model/home-store';
-import { useViewer } from '../api/use-viewer';
+import { useViewer } from '../hooks/use-viewer';
 
 const panelContentClassName = `
   flex flex-col items-center pt-3.5 px-2.5 pb-1 text-center [&_h2]:mt-2.5

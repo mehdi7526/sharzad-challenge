@@ -57,25 +57,3 @@ test('viewer retry displays fresh account data without replacing the homepage', 
   await expect(page.getByText('موجودی: ۱۵٬۰۰۰ تومان')).toBeVisible();
   await expect(page.locator('#services-grid').locator('a, button')).toHaveCount(22);
 });
-
-test('invalid viewer response is rejected before it reaches account UI', async ({ page }) => {
-  await page.route('**/api/viewer', (route) =>
-    route.fulfill({
-      status: 200,
-      json: {
-        meta: { success: true },
-        data: {
-          signedIn: true,
-          wallet: { label: 'کیف پول', balance: 'invalid' },
-          notifications: { unreadCount: 0 },
-        },
-      },
-    }),
-  );
-  await page.goto('/home');
-  await expect(page.locator('#services-grid').locator('a, button')).toHaveCount(22);
-  await expect(page.locator('#home-content')).toHaveCount(1);
-  await page.getByRole('button', { name: 'حساب کاربری', exact: true }).click();
-  await expect(page.getByRole('alert').filter({ hasText: 'پاسخ سرویس معتبر نیست' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'ادامه', exact: true })).toBeDisabled();
-});

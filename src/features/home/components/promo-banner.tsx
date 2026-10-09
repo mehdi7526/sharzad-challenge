@@ -5,8 +5,8 @@ import { useState } from 'react';
 import { SkeletonInput } from '@/shared/components/skeleton';
 import { Link } from '@/shared/components/typography';
 import type { HomepageResult } from '../types';
-import { useHomepage } from '../api/use-homepage';
-import { serviceDestination, useOpenService } from '../model/use-open-service';
+import { useHomepage } from '../hooks/use-homepage';
+import { serviceDestination, useOpenService } from '../hooks/use-open-service';
 
 const bannerFrameClassName =
   'relative block aspect-[2.48] overflow-hidden rounded-[30px] superellipse:[corner-shape:superellipse(2)]';

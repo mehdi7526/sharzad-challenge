@@ -1,27 +1,31 @@
 import 'server-only';
-import { getBackendData } from '@/shared/lib/backend-request';
-import { ApiError } from '@/shared/lib/api-error';
-import type { HomepageResult, ViewerData } from '../types';
-import { parseHomepageData, parseViewerData } from './home-contract';
-import { homeEndpoints } from './home-endpoints';
+import { createApiRequest } from '@/shared/lib/create-api-request';
+import type { ApiResponse } from '@/shared/types';
+import type { HomepageData, ViewerData } from '../types';
 
-export async function getHomepageData(): Promise<HomepageResult> {
-  try {
-    const data = await getBackendData(homeEndpoints.homepage, parseHomepageData);
-    return { ok: true, data };
-  } catch (error) {
-    if (error instanceof ApiError) {
-      return {
-        ok: false,
-        status: error.status ?? 502,
-        message: error.message,
-        details: error.details,
-      };
-    }
-    throw error;
-  }
+const apiRequest = createApiRequest({
+  timeout: 8000,
+  adapter: 'fetch',
+  fetchOptions: { cache: 'no-store' },
+});
+
+function backendUrl(path: string) {
+  const source = process.env.HOME_DATA_SOURCE ?? 'mock';
+  if (source !== 'mock' && source !== 'backend') throw new Error('Invalid HOME_DATA_SOURCE');
+  const baseURL = process.env.API_BASE_URL || (source === 'mock' ? 'http://127.0.0.1:4000' : '');
+  if (!baseURL) throw new Error('API_BASE_URL is required when HOME_DATA_SOURCE=backend');
+  const url = new URL(path.replace(/^\//, ''), `${baseURL.replace(/\/$/, '')}/`);
+  if (url.protocol !== 'http:' && url.protocol !== 'https:')
+    throw new Error('Invalid API_BASE_URL');
+  return url;
 }
 
-export function getViewerData(): Promise<ViewerData> {
-  return getBackendData(homeEndpoints.viewer, parseViewerData);
+export async function getHomepageData(): Promise<ApiResponse<HomepageData>> {
+  const response = await apiRequest.get<ApiResponse<HomepageData>>(backendUrl('/home').href);
+  return response.data;
+}
+
+export async function getViewerData(): Promise<ApiResponse<ViewerData>> {
+  const response = await apiRequest.get<ApiResponse<ViewerData>>(backendUrl('/viewer').href);
+  return response.data;
 }
