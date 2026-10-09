@@ -1,4 +1,4 @@
-import type { ApiErrorResponse } from '@/shared/lib/api-response';
+import type { ApiErrorResponse } from '@/shared/types';
 
 export type Service = {
   id: string;

@@ -1,16 +1,21 @@
-import { ApiContractError } from '@/shared/lib/api-error';
+import { ApiContractError } from '@/shared/lib/api-response';
 import type { HomepageData, Service, ViewerData } from '../types';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function isSafeUrl(value: string) {
-  return (
-    value === '#' ||
-    (value.startsWith('/') && !value.startsWith('//')) ||
-    value.startsWith('https://')
-  );
+function isSafeUrl(value: string, allowPlaceholder = false) {
+  if (allowPlaceholder && value === '#') return true;
+  if (/[\s\\]/.test(value)) return false;
+  if (value.startsWith('/') && !value.startsWith('//')) return true;
+  if (!value.startsWith('https://')) return false;
+  try {
+    const url = new URL(value);
+    return Boolean(url.hostname) && !url.username && !url.password;
+  } catch {
+    return false;
+  }
 }
 
 function parseSubmenu(value: unknown): NonNullable<Service['submenu']> {
@@ -38,7 +43,7 @@ function parseService(value: unknown): Service {
     typeof image !== 'string' ||
     !isSafeUrl(image) ||
     typeof href !== 'string' ||
-    !isSafeUrl(href) ||
+    !isSafeUrl(href, true) ||
     (badge !== undefined && typeof badge !== 'boolean')
   )
     throw new ApiContractError('Invalid homepage service');

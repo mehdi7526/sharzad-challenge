@@ -11,18 +11,18 @@ Use this skill to implement a requested change while keeping the project's behav
 
 Paths are relative to the repository root. Bare filenames in a row share the preceding file's directory.
 
-| Task                               | Start with these files, relative to the repository root                                                                                                                 |
-| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Initial render and SSR data        | `src/features/home/pages/home-page.tsx`, `src/features/home/api/home-server.ts`, `src/shared/lib/backend-request.ts`                                                    |
-| Browser requests, cache, and retry | `src/features/home/api/home-client.ts`, `use-homepage.ts`, `use-viewer.ts`; `src/shared/lib/api-request.ts`, `create-api-request.ts`                                    |
-| Response validation and errors     | `src/features/home/api/home-contract.ts`, `src/features/home/types/index.ts`; `src/shared/lib/api-response.ts`, `api-error.ts`; `src/shared/hooks/use-error-handler.ts` |
-| Browser-to-backend boundary        | `src/app/api/home/route.ts`, `src/app/api/viewer/route.ts`                                                                                                              |
-| Mock responses and execution       | `backend/mock/server.mts`, `backend/mock/fixtures.mts`, `.env.example`, `scripts/run.mjs`, `compose.yml`                                                                |
-| Header, wallet, and scroll         | `src/features/home/components/home-header.tsx`, `home-shell.tsx`, `home-content.tsx`, `home-viewport.tsx`, `wallet-card.tsx`; `src/features/home/model/home-store.tsx`  |
-| Services, menu, and banner         | `src/features/home/components/services-grid.tsx`, `header-services-menu.tsx`, `promo-banner.tsx`; `src/features/home/model/use-open-service.ts`                         |
-| Panels and lazy loading            | `src/features/home/components/home-provider.tsx`, `home-panels.tsx`                                                                                                     |
-| Theme, font, and UI primitives     | `src/app/layout.tsx`, `src/app/_fonts.ts`, `src/shared/config/palette.ts`, `theme.ts`, `src/shared/providers/app-providers.tsx`, `src/shared/components`                |
-| Regression coverage                | `tests/unit`, `tests/home.spec.ts`, `tests/viewer.spec.ts`, `tests/home-states.spec.ts`                                                                                 |
+| Task                               | Start with these files, relative to the repository root                                                                                                                                              |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Initial render and SSR data        | `src/features/home/pages/home-page.tsx`, `src/features/home/api/home-server.ts`, `src/shared/lib/backend-request.ts`                                                                                 |
+| Browser requests, cache, and retry | `src/features/home/api/home-client.ts`, `use-homepage.ts`, `use-viewer.ts`; `src/shared/lib/api-request.ts`                                                                                          |
+| Response validation and errors     | `src/features/home/api/home-contract.ts`, `src/features/home/types/index.ts`; `src/shared/types/index.ts`, `src/shared/lib/api-response.ts`, `api-error.ts`; `src/shared/hooks/use-error-handler.ts` |
+| Browser-to-backend boundary        | `src/app/api/home/route.ts`, `src/app/api/viewer/route.ts`                                                                                                                                           |
+| Mock responses and execution       | `backend/mock/server.mts`, `backend/mock/fixtures.mts`, `.env.example`, `scripts/run.mjs`, `compose.yml`                                                                                             |
+| Header, wallet, and scroll         | `src/features/home/components/home-header.tsx`, `home-shell.tsx`, `home-content.tsx`, `home-viewport.tsx`, `wallet-card.tsx`; `src/features/home/model/home-store.tsx`                               |
+| Services, menu, and banner         | `src/features/home/components/services-grid.tsx`, `header-services-menu.tsx`, `promo-banner.tsx`; `src/features/home/model/use-open-service.ts`                                                      |
+| Panels and lazy loading            | `src/features/home/components/home-provider.tsx`, `home-panels.tsx`                                                                                                                                  |
+| Theme, font, and UI primitives     | `src/app/layout.tsx`, `src/app/_fonts.ts`, `src/shared/config/palette.ts`, `theme.ts`, `src/shared/providers/app-providers.tsx`, `src/shared/components`                                             |
+| Regression coverage                | `tests/unit`, `tests/home.spec.ts`, `tests/viewer.spec.ts`, `tests/home-states.spec.ts`                                                                                                              |
 
 ## Make the change
 

@@ -51,17 +51,23 @@ export function HomeViewport({ children }: { children: ReactNode }) {
   );
 }
 
+function syncScrollState(
+  main: HTMLElement,
+  setScrollState: (compact: boolean, remaining: number) => void,
+) {
+  setScrollState(
+    window.innerWidth < 1024 && main.scrollTop > 0,
+    Math.max(0, main.scrollHeight - main.clientHeight - main.scrollTop),
+  );
+}
+
 export function HomeScrollContent({ children }: { children: ReactNode }) {
   const setScrollState = useHomeStore((state) => state.setScrollState);
   useEffect(() => {
     const main = document.getElementById('home-content');
     const content = document.getElementById('home-scroll-body');
     if (!main || !content) return;
-    const sync = () =>
-      setScrollState(
-        window.innerWidth < 1024 && main.scrollTop > 0,
-        Math.max(0, main.scrollHeight - main.clientHeight - main.scrollTop),
-      );
+    const sync = () => syncScrollState(main, setScrollState);
     const observer = new ResizeObserver(sync);
     observer.observe(main);
     observer.observe(content);
@@ -86,13 +92,7 @@ export function HomeScrollContent({ children }: { children: ReactNode }) {
           desktop:h-[calc(100dvh-90px)] desktop:w-225
           desktop:[background:linear-gradient(var(--color-white)_0%,var(--color-white)_calc(100%-300px),transparent_calc(100%-300px))]
         `}
-      onScroll={(event) => {
-        const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
-        setScrollState(
-          window.innerWidth < 1024 && scrollTop > 0,
-          Math.max(0, scrollHeight - clientHeight - scrollTop),
-        );
-      }}
+      onScroll={(event) => syncScrollState(event.currentTarget, setScrollState)}
     >
       <div id="home-scroll-body">{children}</div>
     </main>

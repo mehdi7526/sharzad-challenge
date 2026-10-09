@@ -107,3 +107,45 @@ describe('viewer contract', () => {
     );
   });
 });
+
+describe('homepage URL validation', () => {
+  it.each([
+    'https://',
+    'https://[invalid',
+    '/\\example.com/image',
+    'https://user:password@example.com/image',
+  ])('rejects malformed or ambiguous URL %s', (image) => {
+    const data = homepage();
+    expect(() => parseHomepageData({ ...data, banner: { ...data.banner, image } })).toThrow(
+      ApiContractError,
+    );
+    expect(() =>
+      parseHomepageData({ ...data, services: [{ ...data.services[0], image }] }),
+    ).toThrow(ApiContractError);
+    expect(() =>
+      parseHomepageData({ ...data, services: [{ ...data.services[0], href: image }] }),
+    ).toThrow(ApiContractError);
+  });
+  it('allows a demo destination but does not allow placeholder image URLs', () => {
+    const data = homepage();
+    expect(
+      parseHomepageData({ ...data, services: [{ ...data.services[0], href: '#' }] }).services[0]
+        .href,
+    ).toBe('#');
+    expect(() => parseHomepageData({ ...data, banner: { ...data.banner, image: '#' } })).toThrow(
+      ApiContractError,
+    );
+    expect(() =>
+      parseHomepageData({ ...data, services: [{ ...data.services[0], image: '#' }] }),
+    ).toThrow(ApiContractError);
+  });
+  it('accepts HTTPS images for services and banners', () => {
+    const data = homepage();
+    const remote = {
+      ...data,
+      services: [{ ...data.services[0], image: 'https://images.example.com/service.webp' }],
+      banner: { ...data.banner, image: 'https://images.example.com/banner.webp' },
+    };
+    expect(parseHomepageData(remote)).toEqual(remote);
+  });
+});

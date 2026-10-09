@@ -130,3 +130,40 @@ test('failed banner image shows a fallback in the reserved frame', async ({ page
   await expect(banner.locator('.ant-skeleton-input')).toHaveCount(0);
   await expect(banner.locator('a')).toHaveCSS('aspect-ratio', '2.48 / 1');
 });
+
+test('account panels share one dialog and return focus when closed', async ({ page }) => {
+  const viewerResponse = page.waitForResponse('**/api/viewer');
+  await page.goto('/home');
+  await viewerResponse;
+  const account = page.getByRole('button', { name: 'حساب کاربری', exact: true });
+  await account.click();
+  await expect(page.getByRole('dialog', { name: 'حساب کاربری' })).toBeVisible();
+  await expect(page.getByRole('dialog')).toHaveCount(1);
+  await expect
+    .poll(() =>
+      page.getByRole('dialog').evaluate((dialog) => dialog.contains(document.activeElement)),
+    )
+    .toBe(true);
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(account).toBeFocused();
+  await page
+    .getByRole('button', { name: /مشاهده/ })
+    .first()
+    .click();
+  await expect(page.getByRole('dialog', { name: 'کیف پول شهرزاد' })).toBeVisible();
+  await page.getByRole('button', { name: 'ورود به حساب', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: 'حساب کاربری' })).toBeVisible();
+  await expect(page.getByRole('dialog')).toHaveCount(1);
+  await expect
+    .poll(() =>
+      page.getByRole('dialog').evaluate((dialog) => dialog.contains(document.activeElement)),
+    )
+    .toBe(true);
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /مشاهده/ }).first()).toBeFocused();
+  await account.click();
+  await page.getByRole('button', { name: 'ادامه', exact: true }).click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+});

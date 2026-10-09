@@ -1,6 +1,6 @@
 import { apiRequest } from '@/shared/lib/api-request';
 import { readApiData } from '@/shared/lib/api-error';
-import type { ApiResponse } from '@/shared/lib/api-response';
+import type { ApiResponse } from '@/shared/types';
 import type { HomepageData, ViewerData } from '../types';
 import { parseHomepageData, parseViewerData } from './home-contract';
 import { homeEndpoints } from './home-endpoints';

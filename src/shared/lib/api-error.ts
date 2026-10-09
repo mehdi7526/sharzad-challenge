@@ -1,12 +1,6 @@
+import type { ApiErrorResponse } from '@/shared/types';
 import { isAxiosError, isCancel } from 'axios';
-import {
-  ApiContractError,
-  parseApiResponse,
-  parseApiErrorResponse,
-  type ApiErrorResponse,
-} from './api-response';
-
-export { ApiContractError } from './api-response';
+import { ApiContractError, parseApiResponse, parseApiErrorResponse } from './api-response';
 
 export class ApiError extends Error {
   readonly status?: number;

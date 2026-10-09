@@ -1,6 +1,6 @@
 import { createServer, type ServerResponse } from 'node:http';
 import { homeFixture, viewerFixture, signedInViewerFixture } from './fixtures.mts';
-import type { ApiResponse, ApiErrorResponse } from '../../src/shared/lib/api-response.ts';
+import type { ApiResponse, ApiErrorResponse } from '../../src/shared/types/index.ts';
 import type { HomepageData, ViewerData } from '../../src/features/home/types/index.ts';
 
 const port = Number(process.env.MOCK_PORT ?? 4000);
@@ -9,9 +9,13 @@ const homeScenario = process.env.MOCK_HOME_SCENARIO ?? 'normal';
 const viewerScenario = process.env.MOCK_VIEWER_SCENARIO ?? 'normal';
 
 if (!['normal', 'slow', 'empty', 'error'].includes(homeScenario))
-  throw new Error('Invalid MOCK_HOME_SCENARIO');
+  throw new Error(
+    `Invalid MOCK_HOME_SCENARIO: ${homeScenario}. Use normal, slow, empty, or error.`,
+  );
 if (!['normal', 'slow', 'signed-in', 'error'].includes(viewerScenario))
-  throw new Error('Invalid MOCK_VIEWER_SCENARIO');
+  throw new Error(
+    `Invalid MOCK_VIEWER_SCENARIO: ${viewerScenario}. Use normal, slow, signed-in, or error. Empty is only supported by MOCK_HOME_SCENARIO.`,
+  );
 if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('Invalid MOCK_PORT');
 
 function sendJson(

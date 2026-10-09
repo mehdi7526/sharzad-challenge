@@ -1,10 +1,7 @@
 import { NextResponse } from 'next/server';
 import { ApiError } from '@/shared/lib/api-error';
-import {
-  apiErrorResponse,
-  type ApiErrorResponse,
-  type ApiResponse,
-} from '@/shared/lib/api-response';
+import { apiErrorResponse } from '@/shared/lib/api-response';
+import type { ApiErrorResponse, ApiResponse } from '@/shared/types';
 import { getViewerData } from '@/features/home/api/home-server';
 import type { ViewerData } from '@/features/home/types';
 

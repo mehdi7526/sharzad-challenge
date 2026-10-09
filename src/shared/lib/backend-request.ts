@@ -1,7 +1,7 @@
 import 'server-only';
 
-import { ApiContractError, ApiError } from './api-error';
-import { parseApiResponse, parseApiErrorResponse } from './api-response';
+import { ApiError, readApiData } from './api-error';
+import { parseApiErrorResponse } from './api-response';
 
 function backendUrl(path: string) {
   const source = process.env.HOME_DATA_SOURCE ?? 'mock';
@@ -17,6 +17,7 @@ function backendUrl(path: string) {
 export async function getBackendData<T>(path: string, parse: (value: unknown) => T): Promise<T> {
   const url = backendUrl(path);
   const signal = AbortSignal.timeout(8000);
+  let data: unknown;
   try {
     const response = await fetch(url, {
       cache: 'no-store',
@@ -32,14 +33,13 @@ export async function getBackendData<T>(path: string, parse: (value: unknown) =>
         body?.meta,
       );
     }
-    const data: unknown = await response.json();
-    return parseApiResponse(data, parse);
+    data = await response.json();
   } catch (error) {
     if (error instanceof ApiError) throw error;
     if (signal.aborted) {
       throw new ApiError('دریافت اطلاعات بیش از حد طول کشید. دوباره تلاش کنید.', 504, error);
     }
-    if (error instanceof ApiContractError || error instanceof SyntaxError) {
+    if (error instanceof SyntaxError) {
       throw new ApiError('پاسخ سرویس معتبر نیست. دوباره تلاش کنید.', 502, error);
     }
     if (error instanceof TypeError) {
@@ -47,4 +47,5 @@ export async function getBackendData<T>(path: string, parse: (value: unknown) =>
     }
     throw error;
   }
+  return readApiData(data, parse);
 }

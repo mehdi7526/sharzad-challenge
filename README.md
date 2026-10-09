@@ -86,7 +86,7 @@ The interview backend contract has not been provided. The standalone mock curren
 
 ## API response contract
 
-The standalone backend lives in `backend/mock`. Successful responses use `{ meta: { success: true }, data: T }`; errors use `{ meta: { success: false, error_code, error_fields }, message, error_status }`. Pagination applies to paginated lists; these two endpoints do not return it. The shared definition and validation live in `src/shared/lib/api-response.ts`. The Axios interceptor preserves `AxiosResponse`; domain API functions use `ApiResponse<T>` and validate the envelope and data. `ApiError` preserves the message, status, and error details.
+The standalone backend lives in `backend/mock`. Successful responses use `{ meta: { success: true }, data: T }`; errors use `{ meta: { success: false, error_code, error_fields }, message, error_status }`. Pagination applies to paginated lists; these two endpoints do not return it. Shared response types live in `src/shared/types/index.ts`; runtime validation lives in `src/shared/lib/api-response.ts`. The Axios interceptor preserves `AxiosResponse`; domain API functions use `ApiResponse<T>` and validate the envelope and data. `ApiError` preserves the message, status, and error details.
 
 ## Unit and browser tests
 

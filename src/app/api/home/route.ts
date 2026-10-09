@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server';
-import {
-  apiErrorResponse,
-  type ApiErrorResponse,
-  type ApiResponse,
-} from '@/shared/lib/api-response';
+import { apiErrorResponse } from '@/shared/lib/api-response';
+import type { ApiErrorResponse, ApiResponse } from '@/shared/types';
 import type { HomepageData } from '@/features/home/types';
 import { getHomepageData } from '@/features/home/api/home-server';
 

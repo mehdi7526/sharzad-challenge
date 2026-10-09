@@ -47,7 +47,7 @@ export function ServicesGrid({ initialResult }: { initialResult: HomepageResult 
         ) : null}
       </Flex>
       {errorMessage ? (
-        <div className="p-[18px] text-center">
+        <div className="p-4.5 text-center">
           <Paragraph role="alert">{errorMessage}</Paragraph>
           <Button onClick={retry} loading={isValidating} disabled={isValidating}>
             تلاش دوباره
@@ -56,7 +56,7 @@ export function ServicesGrid({ initialResult }: { initialResult: HomepageResult 
         </div>
       ) : null}
       {data && services.length === 0 ? (
-        <Paragraph className="p-[18px] text-center" role="status">
+        <Paragraph className="p-4.5 text-center" role="status">
           در حال حاضر خدمتی برای نمایش وجود ندارد.
         </Paragraph>
       ) : null}

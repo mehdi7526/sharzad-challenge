@@ -38,6 +38,7 @@ function BannerImage({ src, alt }: { src: string; alt: string }) {
         height={274}
         sizes="(max-width: 1023px) calc(100vw - 58px), 876px"
         preload
+        unoptimized={!src.startsWith('/')}
         src={src}
         alt={alt}
         onLoad={() => setStatus('loaded')}
