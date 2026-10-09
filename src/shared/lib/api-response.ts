@@ -1,22 +1,8 @@
+import type { ApiErrorResponse } from '@/shared/types';
+
 export class ApiContractError extends Error {}
 
-// Object endpoints are not paginated; list endpoints can supply pagination later.
-export type ApiResponse<T> = {
-  meta: { success: true; pagination?: { current_page: number; total_items: number } };
-  data: T;
-};
-
-export type ApiErrorResponse = {
-  meta: {
-    success: false;
-    error_code: string;
-    error_fields: { field: string; message: string }[];
-  };
-  message: string;
-  error_status: number;
-};
-
-export function parseApiResponse<T>(value: unknown, parse: (data: unknown) => T): T {
+export function parseApiResponse(value: unknown): unknown {
   if (
     typeof value !== 'object' ||
     value === null ||
@@ -44,7 +30,7 @@ export function parseApiResponse<T>(value: unknown, parse: (data: unknown) => T)
     )
       throw new ApiContractError('Invalid pagination');
   }
-  return parse(value.data);
+  return value.data;
 }
 
 export function parseApiErrorResponse(value: unknown): ApiErrorResponse | undefined {

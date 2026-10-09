@@ -33,26 +33,27 @@ These rules apply to this repository. Explicit user requests can change project 
 - Shared UI lives in `src/shared/components`, styles in `src/shared/styles`, request infrastructure in `src/shared/lib`, and general hooks in `src/shared/hooks`. Domain APIs stay in the feature's `api` folder. Do not introduce a `shared/api` or `shared/lib/http` layer for request infrastructure.
 - Use shared Ant Design components for controls and native HTML for simple containers and semantic regions. Add wrappers when they provide useful common behavior or an intentional public API.
 - Prefer explicit, short domain functions. Avoid speculative abstractions, needless import/export chains, empty folders, separate published packages, and unnecessary context or prop forwarding.
-- Keep TypeScript strict. Validate network JSON at the boundary; `unknown` is appropriate before validation. Avoid `any` and casts that merely assert a network response is valid.
+- Keep TypeScript strict. Endpoint payloads use TypeScript types without runtime domain schemas, following the requested PM/UL pattern. Validate the shared response envelope; `unknown` is appropriate at that boundary. Avoid `any` and casts that merely assert a network response is valid.
 - Keep documentation and agent instructions in English and product copy in Persian. Explain decisions in the user's language when reporting work.
 
 ## API and state boundaries
 
-- Initial homepage data is fetched by the Server Component through `home-server.ts` and the server request utility. Do not make the server call its own internal Route Handler over HTTP.
-- Browser requests use the shared Axios instance and SWR through feature API functions and hooks. Route Handlers connect those browser requests to the backend.
-- Keep backend configuration server-side: `HOME_DATA_SOURCE` selects `mock` or `backend`, and `API_BASE_URL` configures the upstream address. The browser uses the relative `/api` base URL.
-- Keep response types and runtime validation aligned. Success uses `{ meta: { success: true }, data }`; errors carry `message`, `error_status`, `error_code`, and `error_fields` through the error envelope.
-- Keep API functions focused on requests and validated domain data. Normalize transport errors centrally, display browser notifications through `useErrorHandler`, and preserve inline errors with retry in the relevant UI. Unexpected errors must remain observable.
+- Initial homepage data is fetched by the Server Component through `home-api.ts` and an Axios instance built by `createApiRequest`. Server requests use the fetch adapter with `cache: no-store`. Do not make the server call its own internal Route Handler over HTTP.
+- Browser requests use the shared Axios instance and SWR through feature API functions and hooks. By default Route Handlers connect those browser requests to the backend; direct browser mode bypasses them.
+- Use one public HTTP(S) `NEXT_PUBLIC_API_BASE_URL` for both server and browser. Direct browser requests are the default; optional `NEXT_PUBLIC_API_USE_PROXY=true` uses `/api` in the browser only. Public settings are fixed at build time. `START_BACKEND` controls process startup, not the data source. Backend secrets must never be placed in public configuration.
+- Keep response envelope types and runtime checks aligned. Success uses `{ meta: { success: true }, data }`; errors carry `message`, `error_status`, `error_code`, and `error_fields` through the error envelope.
+- Keep API functions short: call Axios and return `response.data` (`ApiResponse<T>`), as in the reference PM/UL projects. The shared success interceptor checks only the response envelope and preserves `AxiosResponse`; endpoint payloads are not validated at runtime. Normalize transport errors centrally, display browser notifications through `useErrorHandler`, and preserve inline errors with retry in the relevant UI. Unexpected errors must remain observable.
 - SWR owns API data, loading, errors, and refreshes. Zustand owns interactive UI state; do not copy API responses into it. Keep the store scoped to its provider.
-- Fixtures belong to `backend/mock` and are consumed by the mock implementation only. Application components, hooks, and stores must not import them. Unit tests should define their own small input data.
-- Both sources use HTTP. Never silently replace real backend failures with mock data. Keep scenarios explicit and deterministic; no random failures or forced latency in normal execution.
+- Backend-owned data belongs to `backend/data.mts` and is consumed by the backend service only. Application components, hooks, and stores must not import them. Unit tests should define their own small input data.
+- All requests use HTTP to the configured backend. Never silently replace backend failures with frontend data. Keep scenarios explicit and deterministic; no random failures or forced latency in normal execution.
 - The current `no-store` and SWR refresh settings are deliberate defaults. Change cache or account-identity policies with a stated product reason, and review all consumers of the same data.
 
 ## Styling and scroll state
 
-- Define raw UI colors in `shared/config/palette.ts`. Ant Design and CSS Modules share that palette through the theme and server-rendered CSS custom properties. Preserve colors embedded in reference assets.
-- Use CSS Modules for precise layout and animations. Tailwind currently handles the simple service grid; avoid expanding the styling stack without a concrete need.
-- Keep coordinated shell motion in the shell stylesheet and other component responsibilities in their existing stylesheets.
+- Define raw UI colors in `shared/config/palette.ts`. Ant Design and Tailwind share that palette through the theme and server-rendered CSS custom properties. Preserve colors embedded in reference assets.
+- Use Tailwind utilities for component layout and styling, including precise arbitrary values and coordinated animations. Keep palette aliases, breakpoint/support variants, base rules, and shared Ant Design defaults in `shared/styles/globals.css`; do not reintroduce CSS Modules.
+- Prefer canonical utilities supported by the installed Tailwind version (for example, `gap-4` instead of `gap-[16px]`). Use arbitrary values only when needed for the approved design. Check Tailwind IntelliSense suggestions, variant order, and conflicting classes separately from ESLint; keep conditional classes mutually exclusive and preserve computed styles. Do not disable diagnostics to hide warnings. See the project skill for the diagnostic workflow.
+- Keep coordinated shell motion tied to `group/home` and `data-compact`; keep other component utilities with their owning components.
 - Update scroll state on initial mount, scroll, resize, and content-height changes. Loading, retry, and image changes must not leave footer state stale.
 - Subscribe to the smallest useful state. Only consumers that need pixel distance should render from it; avoid making the whole shell respond to every scroll event.
 

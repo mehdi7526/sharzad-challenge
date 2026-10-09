@@ -7,8 +7,9 @@ for (const path of ['.env.local', '.env']) {
 }
 const mode = process.argv[2];
 if (mode !== 'dev' && mode !== 'start') throw new Error('Use dev or start');
-const source = process.env.HOME_DATA_SOURCE ?? 'mock';
-if (source !== 'mock' && source !== 'backend') throw new Error('Invalid HOME_DATA_SOURCE');
+const startBackend = process.env.START_BACKEND ?? 'true';
+if (startBackend !== 'true' && startBackend !== 'false')
+  throw new Error('START_BACKEND must be true or false');
 
 const children = [];
 let stopping = false;
@@ -28,9 +29,8 @@ function launch(args) {
   child.on('exit', (code) => stop(code ?? 1));
 }
 
-if (source === 'mock') {
-  process.env.API_BASE_URL ||= `http://127.0.0.1:${process.env.MOCK_PORT ?? 4000}`;
-  launch(['--experimental-strip-types', 'backend/mock/server.mts']);
+if (startBackend === 'true') {
+  launch(['--experimental-strip-types', 'backend/server.mts']);
 }
 launch(
   mode === 'dev'

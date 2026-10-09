@@ -3,20 +3,22 @@ import { HomeScrollContent } from './home-viewport';
 import { HomeFooter } from './home-footer';
 import { PromoBanner } from './promo-banner';
 import { WalletCard } from './wallet-card';
-import type { HomepageResult } from '../types';
+import type { HomepageData } from '../types';
 
 export function HomeContent({
   children,
-  initialResult,
+  initialData,
+  initialError,
 }: {
   children: ReactNode;
-  initialResult?: HomepageResult;
+  initialData?: HomepageData;
+  initialError?: string;
 }) {
   return (
     <>
       <WalletCard />
       <HomeScrollContent>
-        <PromoBanner initialResult={initialResult} />
+        <PromoBanner initialData={initialData} initialError={initialError} />
         {children}
         <HomeFooter />
       </HomeScrollContent>

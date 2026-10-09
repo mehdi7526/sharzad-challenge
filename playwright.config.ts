@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const scenario = process.env.MOCK_HOME_SCENARIO ?? 'normal';
+const scenario = process.env.BACKEND_HOME_SCENARIO ?? 'normal';
 
 export default defineConfig({
   testDir: './tests',
@@ -31,11 +31,12 @@ export default defineConfig({
     url: 'http://127.0.0.1:3210/home',
     env: {
       PORT: '3210',
-      MOCK_PORT: '4210',
-      API_BASE_URL: 'http://127.0.0.1:4210',
-      HOME_DATA_SOURCE: 'mock',
-      MOCK_HOME_SCENARIO: scenario,
-      MOCK_VIEWER_SCENARIO: 'normal',
+      BACKEND_PORT: '4210',
+      NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://127.0.0.1:4210',
+      START_BACKEND: 'true',
+      BACKEND_HOME_SCENARIO: scenario,
+      BACKEND_VIEWER_SCENARIO: 'normal',
+      BACKEND_CORS_ORIGIN: 'http://127.0.0.1:3210',
     },
     reuseExistingServer: false,
     timeout: 60_000,

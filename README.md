@@ -12,7 +12,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-The homepage is available at `/home`; `/` redirects to it. `npm run dev` starts both Next.js on port 3000 and the standalone mock backend on port 4000. Stopping the command stops both processes. Run only the mock backend with `npm run mock`, or only the frontend with `npm run dev:frontend`. The mock uses Node's built-in HTTP module and Node's native TypeScript type stripping; it adds no server framework or dependency.
+The homepage is available at `/home`; `/` redirects to it. `npm run dev` starts both Next.js on port 3000 and the project backend on port 4000. Stopping the command stops both processes. Run only the project backend with `npm run backend`, or only the frontend with `npm run dev:frontend`. The backend uses Node's built-in HTTP module and Node's native TypeScript type stripping; it adds no server framework or dependency.
 
 ```bash
 npm run lint
@@ -23,7 +23,7 @@ npm run test:e2e
 npm run start
 ```
 
-`test:e2e` starts a temporary production server on port 3210 and the mock backend on port 4210 after the build. It requires Chrome to be installed and checks normal, empty, and retryable-error responses on desktop and mobile. If Turbopack cannot open a local connection in a restricted environment, `npm run build:webpack` builds the same production application with Webpack. `npm start` runs the standalone server with the required assets.
+`test:e2e` starts a temporary production server on port 3210 and the project backend on port 4210 after the build. It requires Chrome to be installed and checks normal, empty, and retryable-error responses on desktop and mobile. If Turbopack cannot open a local connection in a restricted environment, `npm run build:webpack` builds the same production application with Webpack. `npm start` runs the standalone server with the required assets.
 
 ## Docker
 
@@ -33,34 +33,46 @@ docker compose up --build
 docker compose down
 ```
 
-Compose builds separate `web` and `mock` services. The web service connects to the mock backend at `http://mock:4000` over the internal Docker network. To use a real backend, run the frontend image with `HOME_DATA_SOURCE=backend` and `API_BASE_URL=https://example.com`; the mock service is not needed. These settings are read on the server at runtime. The build requires neither secrets nor a backend connection. `.dockerignore` excludes environment files, local dependencies, and development output from the build context. The runtime uses a non-root user.
+Compose builds separate `web` and `backend` services sharing one network namespace, so `http://127.0.0.1:4000` reaches the backend from both the Next.js server and the host browser. Ports 3000 and 4000 are published by the backend service. Open `http://localhost:3000` to match the configured CORS origin. `NEXT_PUBLIC_API_BASE_URL` and the optional proxy flag are passed at image build time. The build needs no backend connection. `.dockerignore` excludes local environment files and dependencies, and the runtime uses a non-root user.
 
-## Data source and mock API
+## Backend API
 
-The default setting is `HOME_DATA_SOURCE=mock`, and the frontend always retrieves data over HTTP. Fixtures live only in `backend/mock/fixtures.mts` and are consumed only by the standalone mock backend.
+The project backend is a standalone HTTP service. The frontend always retrieves data over HTTP using `NEXT_PUBLIC_API_BASE_URL`; there is no data-source selector. Backend-owned data lives in `backend/data.mts` and is consumed only by `backend/server.mts`. The frontend never imports it.
 
-| Backend endpoint | Internal Next.js endpoint | Response                                                    | Used for                                                                   |
-| ---------------- | ------------------------- | ----------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `GET /home`      | `GET /api/home`           | `HomepageData`: services, submenus, and banner              | Initial fetch with `fetch` in a Server Component; retry with Axios and SWR |
-| `GET /viewer`    | `GET /api/viewer`         | `ViewerData`: demo sign-in state, wallet, and notifications | Browser request after mount with Axios and SWR                             |
+| Backend endpoint | Internal Next.js endpoint | Response                                                    | Used for                                                                 |
+| ---------------- | ------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `GET /home`      | `GET /api/home`           | `HomepageData`: services, submenus, and banner              | Initial fetch with Axios in a Server Component; retry with Axios and SWR |
+| `GET /viewer`    | `GET /api/viewer`         | `ViewerData`: demo sign-in state, wallet, and notifications | Browser request after mount with Axios and SWR                           |
 
-For the initial render, the Next.js server requests `GET {API_BASE_URL}/home` directly. The browser calls an internal Next.js API, whose Route Handler connects to the real or mock backend. The backend URL and configuration are not exposed to the browser. This flow does not implement real authentication or payments.
+The shared functions in `src/features/home/api/home-api.ts` use one `NEXT_PUBLIC_API_BASE_URL` for both server and browser requests. The initial homepage is fetched on the Next.js server; viewer data and homepage retries are requested by the browser. All target the same backend URL by default. This flow does not implement authentication or payments.
 
-```bash
-curl http://127.0.0.1:4000/home
-curl http://127.0.0.1:4000/viewer
-curl http://127.0.0.1:3000/api/viewer
+```dotenv
+NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:4000
+BACKEND_CORS_ORIGIN=http://localhost:3000
 ```
 
-To use a real backend, set `HOME_DATA_SOURCE=backend` and `API_BASE_URL`. Switching the source does not require component changes, and backend failures are never silently replaced with fixture data.
+`START_BACKEND=true` starts the included backend alongside Next.js; set it to `false` when the backend already runs separately. It controls process startup only. `npm run backend` runs the backend alone. Open `http://localhost:3000` to match the exact allowed CORS origin. For another frontend origin, change `BACKEND_CORS_ORIGIN` accordingly.
 
-Configure mock scenarios in `.env.local`. Restart the server after changing them:
+### Optional browser proxy
 
-- `MOCK_HOME_SCENARIO`: `normal`, `slow`, `empty`, or `error`.
-- `MOCK_VIEWER_SCENARIO`: `normal` (signed out), `slow`, `signed-in` (demo account with a balance of 125,000 and two notifications), or `error`.
-- The normal scenario has no delay. `slow` adds a fixed 800 ms delay, and `error` returns a 503 from the mock backend. Next.js preserves backend error statuses; connection failures return 502 and timeouts return 504.
+Direct browser requests are the default. Set `NEXT_PUBLIC_API_USE_PROXY=true` to route browser requests through Next.js `/api`; server requests still target the same `NEXT_PUBLIC_API_BASE_URL` directly. The API functions, SWR state, and retry UI work in either mode, with no automatic fallback. Both public settings are fixed during `next build`; rebuild production output or restart development after changing them. The URL must be reachable from both server and browser and cannot contain secrets. Cross-origin authentication is not implemented.
 
-TypeScript contracts live in `features/home/types`, and runtime validation lives in `api/home-contract.ts`. Axios responses use the explicit `HomepageData` or `ViewerData` types; network data is validated before use. See [docs/architecture.md](docs/architecture.md) for the request, error, and cache flows.
+For the browser suite, build and test against its backend port:
+
+```bash
+NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:4210 npm run build
+NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:4210 npm run test:e2e
+```
+
+To verify proxy mode, add `NEXT_PUBLIC_API_USE_PROXY=true` to both commands. Test configuration supplies the exact backend CORS origin.
+
+Configure backend scenarios in `.env.local`. Restart the server after changing them:
+
+- `BACKEND_HOME_SCENARIO`: `normal`, `slow`, `empty`, or `error`.
+- `BACKEND_VIEWER_SCENARIO`: `normal` (signed out), `slow`, `signed-in` (demo account with a balance of 125,000 and two notifications), or `error`.
+- The normal scenario has no delay. `slow` adds a fixed 800 ms delay, and `error` returns a 503 from the project backend. Next.js preserves backend error statuses; connection failures return 502 and timeouts return 504.
+
+TypeScript contracts live in `features/home/types`. Axios requests use `ApiResponse<HomepageData>` or `ApiResponse<ViewerData>`. The shared interceptor checks the response envelope; endpoint payloads are trusted without runtime domain validation. See [docs/architecture.md](docs/architecture.md) for the request, error, and cache flows.
 
 ## Loading and error handling
 
@@ -70,13 +82,9 @@ The `/home` route uses Next.js loading UI and streaming to show a skeleton in th
 
 `app` contains route, layout, loading, and error boundary files. Each feature in `features` owns its UI, types, model, and adapters. Shared infrastructure lives in `shared`. To add a feature, create its feature folder and import it from the relevant route; the homepage page file does not need to grow for every change.
 
-Flex layouts, typography, buttons, and skeletons use shared Ant Design-based components. Simple containers and semantic page regions use HTML elements. Base components live in `shared/components`; global styles and CSS Modules live in `shared/styles`; shared request utilities live in `shared/lib`. Each feature defines its own API in its feature folder. ESLint restricts direct Ant Design and Axios imports from feature code.
+Flex layouts, typography, buttons, and skeletons use shared Ant Design-based components. Simple containers and semantic page regions use HTML elements. Base components live in `shared/components`; Tailwind utilities style the components, and global Tailwind configuration lives in `shared/styles`; shared request utilities live in `shared/lib`. Each feature defines its own API in its feature folder. ESLint restricts direct Ant Design and Axios imports from feature code.
 
 See [docs/architecture.md](docs/architecture.md) for the server/client boundary and architecture decisions.
-
-### Presentation and code study
-
-The [Persian presentation guide](docs/presentation-guide.fa.md) provides a presentation script, technology trade-offs, interview questions, demo instructions, and implementation limitations. The accompanying [Persian code walkthrough](docs/code-walkthrough.fa.md) explains the current source files with line references and numbered source snapshots. These training documents describe a dated snapshot; refresh them when the implementation changes. Setup and architecture reference documentation remain in English.
 
 ### Continuing with an agent
 
@@ -86,18 +94,14 @@ For example: "Use $maintain-shahrzad to implement the requested change. Follow A
 
 ## Limitations
 
-The interview backend contract has not been provided. The standalone mock currently implements only the two read-only endpoints needed by this page, and its contract is an assumption. Sign-in, wallet balance, notifications, and services without a fixed destination are demo-only; no real payment is made. The scanner control and services with fixed destinations navigate to the reference website in the same tab. Destination pages and actual scanning are outside this challenge. Informational footer links also point to the reference website.
+The project backend implements the two read-only endpoints needed by this page using backend-owned data. It has no database or persistent writes. Sign-in, wallet balance, notifications, and services without a fixed destination are demo-only; no real payment is made. The scanner control and services with fixed destinations navigate to the reference website in the same tab. Destination pages and actual scanning are outside this challenge. Informational footer links also point to the reference website.
 
-## Use of AI
+## API response contract
 
-Codex was used to extract requirements from the PDF, inspect the reference page on desktop and mobile, identify its public assets, implement the page, and review the code. Technical decisions and review findings were checked against the Next.js documentation bundled with the installed version. The feature structure and `app / features / shared` boundaries are project decisions; Next.js does not require a single folder structure. The real backend data, sign-in-dependent routes, and behavior of destination services could not be verified with AI; they should be checked against the actual backend contract and integration tests when that backend is available.
+The standalone backend lives in `backend`. Successful responses use `{ meta: { success: true }, data: T }`; errors use `{ meta: { success: false, error_code, error_fields }, message, error_status }`. Pagination applies to paginated lists; these two endpoints do not return it. Shared response types live in `src/shared/types/index.ts`; runtime validation lives in `src/shared/lib/api-response.ts`. The Axios interceptor preserves `AxiosResponse` and checks the shared response envelope, without endpoint-specific parsers. API functions return `response.data` as `ApiResponse<T>`, following the reference PM/UL convention; consumers read the payload from its `data` field. `ApiError` preserves the message, status, and error details.
 
-### API response contract
+## Unit and browser tests
 
-The standalone backend lives in `backend/mock`. Successful responses use `{ meta: { success: true }, data: T }`; errors use `{ meta: { success: false, error_code, error_fields }, message, error_status }`. Pagination applies to paginated lists; these two endpoints do not return it. The shared definition and validation live in `src/shared/lib/api-response.ts`. The Axios interceptor preserves `AxiosResponse`; domain API functions use `ApiResponse<T>` and validate the envelope and data. `ApiError` preserves the message, status, and error details.
-
-### Unit and browser tests
-
-`npm run test:unit` runs Vitest unit tests in the Node environment without a server or browser. Tests live in `tests/unit` and cover homepage and viewer validation, success and error response contracts, network error normalization, and service destination resolution. Test data is independent of backend fixtures. These logic tests do not need jsdom or React Testing Library.
+`npm run test:unit` runs Vitest unit tests in the Node environment without a server or browser. Tests live in `tests/unit` and cover success and error response envelopes, network error normalization, and service destination resolution. Test data is independent of backend-owned data. These logic tests do not need jsdom or React Testing Library.
 
 `npm run test:e2e` runs Playwright browser tests and requires a production build. Playwright ignores the unit-test folder, and Vitest only reads that folder, so each runner executes only its own tests. DOM behavior, retries, and scrolling are checked with E2E tests.

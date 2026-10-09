@@ -6,6 +6,10 @@ RUN npm ci --no-audit --no-fund
 FROM node:22-alpine AS builder
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
+ARG NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:4000
+ARG NEXT_PUBLIC_API_USE_PROXY=false
+ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
+ENV NEXT_PUBLIC_API_USE_PROXY=$NEXT_PUBLIC_API_USE_PROXY
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
 RUN npm run build

@@ -1,4 +1,4 @@
-import type { Service, HomepageData, ViewerData } from '../../src/features/home/types/index.ts';
+import type { Service, HomepageData, ViewerData } from '../src/features/home/types/index.ts';
 
 const services: Service[] = [
   {
@@ -103,7 +103,7 @@ const services: Service[] = [
   { id: 'carpool', title: 'هم‌پیمایی', image: '/assets/services/carpool.webp', href: '/forms/hov' },
 ];
 
-export const homeFixture: HomepageData = {
+export const homeData: HomepageData = {
   services,
   banner: {
     image: '/assets/traffic-banner.jpg',
@@ -112,13 +112,13 @@ export const homeFixture: HomepageData = {
   },
 };
 
-export const viewerFixture: ViewerData = {
+export const viewerData: ViewerData = {
   signedIn: false,
   wallet: { label: 'کیف پول', balance: null },
   notifications: { unreadCount: 0 },
 };
 
-export const signedInViewerFixture: ViewerData = {
+export const signedInViewerData: ViewerData = {
   signedIn: true,
   wallet: { label: 'کیف پول', balance: 125000 },
   notifications: { unreadCount: 2 },

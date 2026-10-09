@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { serviceDestination } from '@/features/home/model/use-open-service';
+import { serviceDestination } from '@/features/home/hooks/use-open-service';
 import type { Service } from '@/features/home/types';
 
 function service(href: string): Service {

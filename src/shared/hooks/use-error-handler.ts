@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import { useMessage } from '@/shared/components/use-message';
+import { useMessage } from '@/shared/hooks/use-message';
 import { normalizeApiError } from '@/shared/lib/api-error';
 
 export function useErrorHandler() {

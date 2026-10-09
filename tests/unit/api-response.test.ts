@@ -5,7 +5,6 @@ import {
   parseApiErrorResponse,
   parseApiResponse,
 } from '@/shared/lib/api-response';
-import { parseViewerData } from '@/features/home/api/home-contract';
 
 const viewer = {
   signedIn: false,
@@ -14,16 +13,14 @@ const viewer = {
 };
 
 describe('API envelope', () => {
-  it('extracts validated domain data from a successful response', () => {
-    expect(parseApiResponse({ meta: { success: true }, data: viewer }, parseViewerData)).toEqual(
-      viewer,
-    );
+  it('extracts data from a successful response envelope', () => {
+    expect(parseApiResponse({ meta: { success: true }, data: viewer })).toEqual(viewer);
   });
 
   it.each([viewer, { meta: { success: false }, data: viewer }, { meta: { success: true } }])(
     'rejects missing or unsuccessful envelopes %#',
     (response) => {
-      expect(() => parseApiResponse(response, parseViewerData)).toThrow(ApiContractError);
+      expect(() => parseApiResponse(response)).toThrow(ApiContractError);
     },
   );
 
@@ -32,12 +29,12 @@ describe('API envelope', () => {
       meta: { success: true, pagination: { current_page: 1, total_items: 0 } },
       data: viewer,
     };
-    expect(parseApiResponse(response, parseViewerData)).toEqual(viewer);
+    expect(parseApiResponse(response)).toEqual(viewer);
     expect(() =>
-      parseApiResponse(
-        { ...response, meta: { success: true, pagination: { current_page: 0, total_items: -1 } } },
-        parseViewerData,
-      ),
+      parseApiResponse({
+        ...response,
+        meta: { success: true, pagination: { current_page: 0, total_items: -1 } },
+      }),
     ).toThrow(ApiContractError);
   });
 

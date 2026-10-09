@@ -1,6 +1,6 @@
 'use client';
 import type { Service } from '../types';
-import { useHomeStore } from './home-store';
+import { useHomeStore } from '../model/home-store';
 
 const referenceOrigin = 'https://web.shahrzadcity.ir';
 

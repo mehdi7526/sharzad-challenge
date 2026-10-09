@@ -4,18 +4,18 @@ import { HomeNavigation } from './home-navigation';
 import { HomeProvider } from './home-provider';
 import { HomeViewport } from './home-viewport';
 import { DesktopFooter } from './home-footer';
-import type { HomepageResult } from '../types';
+import type { HomepageData } from '../types';
 export function HomeShell({
   children,
-  initialResult,
+  initialData,
 }: {
   children: ReactNode;
-  initialResult?: HomepageResult;
+  initialData?: HomepageData;
 }) {
   return (
     <HomeProvider>
       <HomeViewport>
-        <HomeHeader initialResult={initialResult} />
+        <HomeHeader initialData={initialData} />
         {children}
         <DesktopFooter />
         <HomeNavigation />
