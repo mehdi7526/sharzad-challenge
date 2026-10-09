@@ -96,7 +96,10 @@ test('slow banner image keeps its skeleton and reserves the final layout', async
       return;
     }
     await imageGate;
-    await route.continue();
+    await route.fulfill({
+      path: 'public/assets/traffic-banner.jpg',
+      contentType: 'image/jpeg',
+    });
   });
   await page.goto('/home', { waitUntil: 'domcontentloaded' });
   const banner = page.getByRole('region', { name: 'پیشنهادهای ویژه', exact: true });

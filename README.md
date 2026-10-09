@@ -62,6 +62,14 @@ NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:4210 npm run build
 NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:4210 npm run test:e2e
 ```
 
+In Windows PowerShell:
+
+```powershell
+$env:NEXT_PUBLIC_API_BASE_URL = 'http://127.0.0.1:4210'
+npm run build
+npm run test:e2e
+```
+
 Test configuration supplies the exact backend CORS origin.
 
 Configure backend scenarios in `.env.local`. Restart the server after changing them:
@@ -115,3 +123,5 @@ The standalone backend lives in `backend`. Successful responses use `{ meta: { s
 `npm run test:unit` runs Vitest unit tests in the Node environment without a server or browser. Tests live in `tests/unit` and cover success and error response envelopes, network error normalization, and service destination resolution. Test data is independent of backend-owned data. These logic tests do not need jsdom or React Testing Library.
 
 `npm run test:e2e` runs Playwright browser tests and requires a production build. Playwright ignores the unit-test folder, and Vitest only reads that folder, so each runner executes only its own tests. DOM behavior, retries, and scrolling are checked with E2E tests.
+
+The E2E Node.js runner works on Windows, macOS, and Linux. It runs the normal, empty, and error backend scenarios sequentially and stops on the first failure. Playwright defaults to one worker to avoid contention during cold image optimization. Extra Playwright arguments are forwarded to each run; for example, `npm run test:e2e -- --workers=2` overrides the worker count, and `npm run test:e2e -- --list` lists tests without starting servers.

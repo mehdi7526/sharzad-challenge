@@ -68,6 +68,10 @@ The `desktop` and `mobile` variants retain the original 1024 px breakpoint; `des
 
 Playwright covers server-rendered homepage data, the browser viewer request, errors and account retries, destinations, and mobile/desktop scrolling. E2E runs use port 4210 for the project backend and 3210 for the frontend to avoid conflicting with the development server.
 
+`scripts/test-e2e.mjs` invokes the installed Playwright CLI through Node.js without shell-specific environment assignments. It supplies each backend scenario through the child process environment, runs normal, empty, and error suites sequentially, forwards extra CLI arguments, and stops on the first failed or interrupted run.
+
+Playwright uses one worker by default because parallel cold image optimization caused local timeouts. The delayed-banner test gates a response containing the local banner fixture, so it tests skeleton visibility and layout stability independently of image optimizer latency. Other page-load tests retain real image requests.
+
 The project backend implements the read-only endpoints required by the UI with backend-owned data. It has no database or persistent writes. Sign-in, wallet, and notification data are demonstrative. Payments, real authentication, and destination pages are not implemented; fixed destinations navigate to the reference site.
 
 ## API readability and error handling

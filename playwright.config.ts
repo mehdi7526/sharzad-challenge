@@ -6,6 +6,7 @@ export default defineConfig({
   testDir: './tests',
   testIgnore: '**/unit/**',
   fullyParallel: true,
+  workers: 1,
   retries: 0,
   reporter: 'list',
   use: {
