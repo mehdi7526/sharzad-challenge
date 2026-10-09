@@ -1,0 +1,17 @@
+services:
+  web:
+    build: .
+    ports:
+      - '3000:3000'
+    environment:
+      HOME_DATA_SOURCE: mock
+      API_BASE_URL: http://mock:4000
+    depends_on:
+      - mock
+  mock:
+    build:
+      context: .
+      dockerfile: backend/mock/Dockerfile
+    environment:
+      MOCK_HOME_SCENARIO: ${MOCK_HOME_SCENARIO:-normal}
+      MOCK_VIEWER_SCENARIO: ${MOCK_VIEWER_SCENARIO:-normal}

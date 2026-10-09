@@ -1,0 +1,28 @@
+@layer shared {
+  .text {
+    margin: 0;
+    font: inherit;
+    color: inherit;
+  }
+  .title {
+    margin: 0;
+    color: inherit;
+  }
+  .action {
+    height: auto;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    color: inherit;
+    font: inherit;
+    white-space: normal;
+  }
+  .action:not(:disabled):hover,
+  .action:not(:disabled):active {
+    background: transparent;
+    color: inherit;
+  }
+}

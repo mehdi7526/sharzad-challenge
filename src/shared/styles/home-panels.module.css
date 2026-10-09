@@ -1,0 +1,34 @@
+.modal-content {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+  padding: 14px 10px 4px;
+}
+.modal-content h2 {
+  margin: 10px 0 7px;
+  font-size: 18px;
+}
+.modal-content :global(div.ant-typography) {
+  max-width: 350px;
+  margin: 0 0 18px;
+  color: var(--color-bodymuted);
+  font-size: 13px;
+  line-height: 1.9;
+}
+.modal-service-icon {
+  width: 74px;
+  height: 74px;
+  object-fit: contain;
+  border-radius: 20px;
+  background: var(--color-modaltile);
+}
+.modal-icon {
+  width: 60px;
+  height: 60px;
+  display: grid;
+  place-items: center;
+  color: var(--color-action);
+  border-radius: 19px;
+  background: var(--color-modalicon);
+}

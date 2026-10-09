@@ -1,0 +1,27 @@
+.fallback {
+  min-height: 50vh;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 16px;
+  padding: 32px;
+  text-align: center;
+  color: var(--color-text);
+}
+.fallback h1,
+.fallback :global(div.ant-typography) {
+  margin: 0;
+}
+.fallback button {
+  font: inherit;
+  padding: 12px 24px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--color-action);
+  color: var(--color-white);
+  cursor: pointer;
+}
+.fallback button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}

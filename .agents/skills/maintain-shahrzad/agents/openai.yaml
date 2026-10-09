@@ -1,0 +1,4 @@
+interface:
+  display_name: 'Maintain Shahrzad'
+  short_description: 'Continue the Shahrzad Next.js project'
+  default_prompt: 'Use $maintain-shahrzad to implement the requested change in this project while preserving its approved behavior and architecture.'
