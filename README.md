@@ -74,10 +74,6 @@ Flex layouts, typography, buttons, and skeletons use shared Ant Design-based com
 
 See [docs/architecture.md](docs/architecture.md) for the server/client boundary and architecture decisions.
 
-### Presentation and code study
-
-The [Persian presentation guide](docs/presentation-guide.fa.md) provides a presentation script, technology trade-offs, interview questions, demo instructions, and implementation limitations. The accompanying [Persian code walkthrough](docs/code-walkthrough.fa.md) explains the current source files with line references and numbered source snapshots. These training documents describe a dated snapshot; refresh them when the implementation changes. Setup and architecture reference documentation remain in English.
-
 ### Continuing with an agent
 
 Start with [AGENTS.md](AGENTS.md), which records the repository rules and approved behavior. The project-local skill [maintain-shahrzad](.agents/skills/maintain-shahrzad/SKILL.md) provides a task-oriented file map, API and UI workflows, and guidance for selecting checks. It lives in `.agents/skills` and can be invoked as `$maintain-shahrzad` in Codex. Agents without skill discovery can read the same `SKILL.md` directly.
@@ -88,15 +84,11 @@ For example: "Use $maintain-shahrzad to implement the requested change. Follow A
 
 The interview backend contract has not been provided. The standalone mock currently implements only the two read-only endpoints needed by this page, and its contract is an assumption. Sign-in, wallet balance, notifications, and services without a fixed destination are demo-only; no real payment is made. The scanner control and services with fixed destinations navigate to the reference website in the same tab. Destination pages and actual scanning are outside this challenge. Informational footer links also point to the reference website.
 
-## Use of AI
-
-Codex was used to extract requirements from the PDF, inspect the reference page on desktop and mobile, identify its public assets, implement the page, and review the code. Technical decisions and review findings were checked against the Next.js documentation bundled with the installed version. The feature structure and `app / features / shared` boundaries are project decisions; Next.js does not require a single folder structure. The real backend data, sign-in-dependent routes, and behavior of destination services could not be verified with AI; they should be checked against the actual backend contract and integration tests when that backend is available.
-
-### API response contract
+## API response contract
 
 The standalone backend lives in `backend/mock`. Successful responses use `{ meta: { success: true }, data: T }`; errors use `{ meta: { success: false, error_code, error_fields }, message, error_status }`. Pagination applies to paginated lists; these two endpoints do not return it. The shared definition and validation live in `src/shared/lib/api-response.ts`. The Axios interceptor preserves `AxiosResponse`; domain API functions use `ApiResponse<T>` and validate the envelope and data. `ApiError` preserves the message, status, and error details.
 
-### Unit and browser tests
+## Unit and browser tests
 
 `npm run test:unit` runs Vitest unit tests in the Node environment without a server or browser. Tests live in `tests/unit` and cover homepage and viewer validation, success and error response contracts, network error normalization, and service destination resolution. Test data is independent of backend fixtures. These logic tests do not need jsdom or React Testing Library.
 
