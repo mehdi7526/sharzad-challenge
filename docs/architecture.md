@@ -91,3 +91,9 @@ Functions in `home-client.ts` make typed requests and return domain data. `readA
 ## Unit tests
 
 Vitest runs in the Node environment and uses the project's `@/` alias to include only `tests/unit/**/*.test.ts`. These tests cover domain contracts, response envelopes, network errors, and service destinations. Small fixtures are defined in the tests; no backend server or browser is needed. Async Server Components and scroll behavior remain covered by Playwright. No unit tests were added for presentational wrappers alone.
+
+## React 19 compatibility and banner loading
+
+Ant Design 5 uses the official `@ant-design/v5-patch-for-react-19` compatibility package, imported once at the client provider entry. This keeps React 19 rendering compatible with Ant Design's wave effects and imperative rendering without suppressing warnings or changing library major versions.
+
+`PromoBanner` reserves its 2.48 aspect ratio in both the route loading shell and the final link. A shared Ant Design skeleton remains visible until Next Image's `onLoad` fires. The image state is scoped to its source using a React key, so a new banner starts loading independently after a refresh. Image failure replaces the skeleton with a Persian fallback in the same frame. Empty or failed homepage responses do not invent a banner.

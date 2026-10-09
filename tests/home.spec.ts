@@ -83,3 +83,50 @@ test('compact header styles respect resizing and reduced motion', async ({ page,
   await expect(logo).toHaveAttribute('tabindex', '0');
   await expect(content).toHaveCSS('transform', 'none');
 });
+
+test('slow banner image keeps its skeleton and reserves the final layout', async ({ page }) => {
+  let releaseImage!: () => void;
+  const imageGate = new Promise<void>((resolve) => {
+    releaseImage = resolve;
+  });
+  await page.route('**/_next/image?**', async (route) => {
+    if (new URL(route.request().url()).searchParams.get('url') !== '/assets/traffic-banner.jpg') {
+      await route.continue();
+      return;
+    }
+    await imageGate;
+    await route.continue();
+  });
+  await page.goto('/home', { waitUntil: 'domcontentloaded' });
+  const banner = page.getByRole('region', { name: 'پیشنهادهای ویژه', exact: true });
+  const image = banner.locator('img');
+  const skeleton = banner.locator('.ant-skeleton-input');
+  await expect(skeleton).toBeVisible();
+  await expect(image).toHaveCSS('opacity', '0');
+  const frameBefore = await banner.locator('a').boundingBox();
+  const skeletonBounds = await skeleton.boundingBox();
+  const servicesBefore = await page.locator('#services').boundingBox();
+  expect(frameBefore).not.toBeNull();
+  expect(skeletonBounds?.height).toBeCloseTo(frameBefore!.height, 0);
+  expect(skeletonBounds?.width).toBeCloseTo(frameBefore!.width, 0);
+  releaseImage();
+  await expect(image).toHaveCSS('opacity', '1');
+  await expect(skeleton).toHaveCount(0);
+  expect(await banner.locator('a').boundingBox()).toEqual(frameBefore);
+  expect(await page.locator('#services').boundingBox()).toEqual(servicesBefore);
+});
+
+test('failed banner image shows a fallback in the reserved frame', async ({ page }) => {
+  await page.route('**/_next/image?**', async (route) => {
+    if (new URL(route.request().url()).searchParams.get('url') === '/assets/traffic-banner.jpg') {
+      await route.abort();
+      return;
+    }
+    await route.continue();
+  });
+  await page.goto('/home');
+  const banner = page.getByRole('region', { name: 'پیشنهادهای ویژه', exact: true });
+  await expect(banner.getByText('تصویر پیشنهاد بارگذاری نشد')).toBeVisible();
+  await expect(banner.locator('.ant-skeleton-input')).toHaveCount(0);
+  await expect(banner.locator('a')).toHaveCSS('aspect-ratio', '2.48 / 1');
+});
