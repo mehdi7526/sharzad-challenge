@@ -90,6 +90,18 @@ Start with [AGENTS.md](AGENTS.md), which records the repository rules and approv
 
 For example: "Use $maintain-shahrzad to implement the requested change. Follow AGENTS.md, preserve the approved page behavior, and report the checks you performed."
 
+## AI assistance
+
+I used the following tools during development:
+
+- **OpenAI Codex** was used to write and refactor the project code and assist with verification.
+- **[RTK](https://github.com/rtk-ai/rtk)** was used alongside Codex to reduce the amount of terminal output entering the agent's context. It filters, groups, and compresses command output, helping reduce token consumption during development.
+- **[Ponytail](https://github.com/DietrichGebert/ponytail)** was used to discourage overengineering. Its guidance favors the smallest complete solution: reuse existing project code, platform features, and installed dependencies before adding new code. It discourages speculative abstractions and unnecessary wrappers while retaining required validation, error handling, accessibility, and tests.
+- **A Chrome browser extension** connected Codex to the browser for inspecting pages and checking the interface during development.
+- **[OpenAI Code Review](https://learn.chatgpt.com/docs/code-review)** in ChatGPT/Codex was used as an additional code reviewer to identify potential bugs and regressions.
+
+I remain responsible for the submitted code and technical decisions. AI review complements the project's automated checks; it does not establish that the implementation is free of defects.
+
 ## Limitations
 
 The project backend implements the two read-only endpoints needed by this page using backend-owned data. It has no database or persistent writes. Sign-in, wallet balance, notifications, and services without a fixed destination are demo-only; no real payment is made. The scanner control and services with fixed destinations navigate to the reference website in the same tab. Destination pages and actual scanning are outside this challenge. Informational footer links also point to the reference website.
