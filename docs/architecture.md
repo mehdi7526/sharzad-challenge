@@ -14,7 +14,7 @@ Browser viewer: useViewer → getViewer → backend /viewer
 Browser home retry: useHomepage/mutate → getHomepage → backend /home
 ```
 
-Both environments use `NEXT_PUBLIC_API_BASE_URL`. With `NEXT_PUBLIC_API_USE_PROXY=true`, browser requests instead go through `/api/home` or `/api/viewer`; those Route Handlers reuse the same API functions to reach the backend. Server requests never call the application's own Route Handlers. The public settings are fixed at build time and must work from both environments. There is no automatic fallback between targets, and authentication is not implemented.
+Both environments connect directly to the backend using `NEXT_PUBLIC_API_BASE_URL`. There are no Next.js API proxy routes. The public URL is fixed at build time and must work from both environments. Browser requests require exact-origin backend CORS. Authentication is not implemented.
 
 ## Endpoint contracts
 
@@ -30,9 +30,9 @@ Server and browser API functions return `Promise<ApiResponse<HomepageData>>` or 
 
 `createApiRequest` in `shared/lib/create-api-request.ts` creates Axios clients with common headers, timeout, and success/error interceptors. Success checks only the `{ meta, data }` envelope. It preserves the original `AxiosResponse`. Transport and contract failures become displayable `ApiError` objects; unexpected programming errors are not hidden. There is no `getBackendData` or `readApiData` call chain.
 
-`home-api.ts` calls the shared `apiRequest` and returns the `ApiResponse<T>` envelope. `api-request.ts` passes the environment URL directly to `createApiRequest`; the factory owns request and response interceptors. Its request interceptor validates the single HTTP(S) `NEXT_PUBLIC_API_BASE_URL`. In the browser it uses this URL directly, or `/api` when `NEXT_PUBLIC_API_USE_PROXY=true`, with an eleven-second timeout. On the server it always uses the same backend URL, an eight-second timeout, the fetch adapter, and `cache: no-store`. It changes individual request config rather than shared defaults. Both public settings are inlined at build time, so production changes require a rebuild. The backend supports exact-origin GET CORS through `BACKEND_CORS_ORIGIN`.
+`home-api.ts` calls the shared `apiRequest` and returns the `ApiResponse<T>` envelope. `api-request.ts` passes the environment URL directly to `createApiRequest`; the factory owns request and response interceptors. Its request interceptor validates the single HTTP(S) `NEXT_PUBLIC_API_BASE_URL`. In the browser it uses this URL directly with an eleven-second timeout. On the server it always uses the same backend URL, an eight-second timeout, the fetch adapter, and `cache: no-store`. It changes individual request config rather than shared defaults. The public URL is inlined at build time, so production changes require a rebuild. The backend supports exact-origin GET CORS through `BACKEND_CORS_ORIGIN`.
 
-Valid upstream HTTP error statuses, messages, and details are preserved. Invalid JSON or an invalid response envelope returns 502; connection failures return 502; timeouts return 504. The initial page catches expected API errors to render the existing inline retry state. Route Handlers return the API envelope on success and translate errors into HTTP responses. SWR consumers extract the payload from the envelope; `useErrorHandler` displays notifications without storing duplicate API state. Feature code imports the configured client or factory, not Axios directly.
+Valid upstream HTTP error statuses, messages, and details are preserved. Invalid JSON or an invalid response envelope returns 502; connection failures return 502; timeouts return 504. The initial page catches expected API errors to render the existing inline retry state. SWR consumers extract the payload from the envelope; `useErrorHandler` displays notifications without storing duplicate API state. Feature code imports the configured client or factory, not Axios directly.
 
 ## Cache and loading
 

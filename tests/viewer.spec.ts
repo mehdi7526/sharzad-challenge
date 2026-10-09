@@ -14,8 +14,7 @@ test('home is server-rendered and viewer is fetched by the browser', async ({ pa
   const response = await viewerResponse;
   expect(response.status()).toBe(200);
   expect(response.url()).toBe(browserApiUrl('/viewer'));
-  if (process.env.NEXT_PUBLIC_API_USE_PROXY !== 'true')
-    expect(response.headers()['access-control-allow-origin']).toBe('http://127.0.0.1:3210');
+  expect(response.headers()['access-control-allow-origin']).toBe('http://127.0.0.1:3210');
   expect(await response.json()).toMatchObject({
     meta: { success: true },
     data: { signedIn: false, wallet: { balance: null } },

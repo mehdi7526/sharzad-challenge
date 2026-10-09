@@ -16,7 +16,6 @@ Paths are relative to the repository root. Bare filenames in a row share the pre
 | Initial render and SSR data        | `src/features/home/pages/home-page.tsx`, `src/features/home/api/home-api.ts`                                                                                           |
 | Browser requests, cache, and retry | `src/features/home/api/home-api.ts`; `src/features/home/hooks/use-homepage.ts`, `use-viewer.ts`; `src/shared/lib/api-request.ts`, `create-api-request.ts`              |
 | Response validation and errors     | `src/features/home/types/index.ts`; `src/shared/types/index.ts`, `src/shared/lib/api-response.ts`, `api-error.ts`; `src/shared/hooks/use-error-handler.ts`             |
-| Browser-to-backend boundary        | `src/app/api/home/route.ts`, `src/app/api/viewer/route.ts`                                                                                                             |
 | Backend responses and execution    | `backend/server.mts`, `backend/data.mts`, `.env.example`, `scripts/run.mjs`, `compose.yml`                                                                             |
 | Header, wallet, and scroll         | `src/features/home/components/home-header.tsx`, `home-shell.tsx`, `home-content.tsx`, `home-viewport.tsx`, `wallet-card.tsx`; `src/features/home/model/home-store.tsx` |
 | Services, menu, and banner         | `src/features/home/components/services-grid.tsx`, `header-services-menu.tsx`, `promo-banner.tsx`; `src/features/home/hooks/use-open-service.ts`                        |
@@ -33,19 +32,19 @@ Paths are relative to the repository root. Bare filenames in a row share the pre
 
 ## API changes
 
-With the optional proxy enabled, the paths are:
+Requests connect directly to the backend:
 
 ```text
 Initial home: HomePage → getHomepage → Axios (fetch adapter) → backend /home
-Browser viewer: useViewer → getViewer/Axios → Next /api/viewer → getViewer/Axios → backend /viewer
-Home retry: useHomepage/mutate → getHomepage/Axios → Next /api/home → getHomepage → backend /home
+Browser viewer: useViewer → getViewer/Axios → backend /viewer
+Home retry: useHomepage/mutate → getHomepage/Axios → backend /home
 ```
 
-`NEXT_PUBLIC_API_BASE_URL` is the single URL for server and direct browser requests. Optional `NEXT_PUBLIC_API_USE_PROXY=true` routes browser requests through `/api`. Both public settings are fixed at build time and must match the test build. Direct mode is the default. The backend supports exact-origin GET CORS via `BACKEND_CORS_ORIGIN`. Both modes preserve shared response/error handling without automatic fallback.
+`NEXT_PUBLIC_API_BASE_URL` is the single URL for server and browser requests, fixed at build time and matched to the test build. There are no Next.js API proxy routes. The backend supports exact-origin GET CORS via `BACKEND_CORS_ORIGIN`.
 
 The menu, services, and banner consume the same homepage SWR key. Account panels and wallet cards share the viewer key. `useHomepage` receives server fallback data and disables mount revalidation; `useViewer` fetches after mount. Preserve that distinction unless the task changes it.
 
-When adding or changing an endpoint, update only the necessary domain type, endpoint path, server/client consumers, and Route Handler. Add backend data only if the UI needs it. Keep API configuration out of components and do not fabricate a full backend framework for these GET endpoints.
+When adding or changing an endpoint, update only the necessary domain type, endpoint path, server/client consumers. Add backend data only if the UI needs it. Keep API configuration out of components and do not fabricate a full backend framework for these GET endpoints.
 
 The Axios success interceptor preserves `AxiosResponse`. API functions return `ApiResponse<T>` through `response.data`, following PM/UL. The factory success interceptor checks only the shared response envelope; endpoint payloads rely on TypeScript types without runtime domain schemas; consumers read the domain payload from `response.data`. `normalizeApiError` handles transport and contract failures. SWR's `onError` calls `handleError`. A bound `mutate()` with no arguments stores a failed revalidation in SWR; a component's `try/catch` is not the error notification mechanism for that flow.
 

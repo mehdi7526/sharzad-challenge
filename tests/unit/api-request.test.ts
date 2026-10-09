@@ -11,50 +11,43 @@ afterEach(() => {
 });
 
 describe('shared API request environment', () => {
-  it.each([
-    ['true', '/api'],
-    ['false', 'https://public.example.com/v1/'],
-  ])(
-    'uses the configured browser target (%s) without server configuration',
-    async (useProxy, expectedBaseURL) => {
-      vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'https://public.example.com/v1');
-      vi.stubEnv('NEXT_PUBLIC_API_USE_PROXY', useProxy);
-      vi.stubGlobal('window', {});
-      const { apiRequest } = await import('@/shared/lib/api-request');
-      const { getHomepage, getViewer } = await import('@/features/home/api/home-api');
-      const adapter = vi.fn<AxiosAdapter>(async (config) => ({
-        data: response,
-        status: 200,
-        statusText: 'OK',
-        headers: {},
-        config,
-      }));
-      const previousAdapter = apiRequest.defaults.adapter;
-      apiRequest.defaults.adapter = adapter;
-      try {
-        await expect(getHomepage()).resolves.toEqual(response);
-        await expect(getViewer()).resolves.toEqual(response);
-        expect(adapter).toHaveBeenNthCalledWith(
-          1,
-          expect.objectContaining({
-            baseURL: expectedBaseURL,
-            url: '/home',
-            timeout: 11000,
-          }),
-        );
-        expect(adapter).toHaveBeenNthCalledWith(
-          2,
-          expect.objectContaining({
-            baseURL: expectedBaseURL,
-            url: '/viewer',
-            timeout: 11000,
-          }),
-        );
-      } finally {
-        apiRequest.defaults.adapter = previousAdapter;
-      }
-    },
-  );
+  it('uses the configured backend URL in the browser', async () => {
+    vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'https://public.example.com/v1');
+    vi.stubGlobal('window', {});
+    const { apiRequest } = await import('@/shared/lib/api-request');
+    const { getHomepage, getViewer } = await import('@/features/home/api/home-api');
+    const adapter = vi.fn<AxiosAdapter>(async (config) => ({
+      data: response,
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config,
+    }));
+    const previousAdapter = apiRequest.defaults.adapter;
+    apiRequest.defaults.adapter = adapter;
+    try {
+      await expect(getHomepage()).resolves.toEqual(response);
+      await expect(getViewer()).resolves.toEqual(response);
+      expect(adapter).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({
+          baseURL: 'https://public.example.com/v1/',
+          url: '/home',
+          timeout: 11000,
+        }),
+      );
+      expect(adapter).toHaveBeenNthCalledWith(
+        2,
+        expect.objectContaining({
+          baseURL: 'https://public.example.com/v1/',
+          url: '/viewer',
+          timeout: 11000,
+        }),
+      );
+    } finally {
+      apiRequest.defaults.adapter = previousAdapter;
+    }
+  });
 
   it.each(['ftp://public.example.com', 'not-a-url'])(
     'rejects invalid browser URLs (%s)',
@@ -78,8 +71,7 @@ describe('shared API request environment', () => {
     );
   });
 
-  it('uses the configured server URL even with browser proxy enabled and preserves path prefixes', async () => {
-    vi.stubEnv('NEXT_PUBLIC_API_USE_PROXY', 'true');
+  it('preserves server URL path prefixes', async () => {
     vi.stubEnv('NEXT_PUBLIC_API_BASE_URL', 'https://api.example.com/v1/');
     const { apiRequest } = await import('@/shared/lib/api-request');
     const { getHomepage, getViewer } = await import('@/features/home/api/home-api');

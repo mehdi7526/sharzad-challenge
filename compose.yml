@@ -4,7 +4,6 @@ services:
       context: .
       args:
         NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://127.0.0.1:4000}
-        NEXT_PUBLIC_API_USE_PROXY: ${NEXT_PUBLIC_API_USE_PROXY:-false}
     network_mode: service:backend
     depends_on:
       - backend

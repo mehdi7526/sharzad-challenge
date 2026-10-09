@@ -33,18 +33,18 @@ docker compose up --build
 docker compose down
 ```
 
-Compose builds separate `web` and `backend` services sharing one network namespace, so `http://127.0.0.1:4000` reaches the backend from both the Next.js server and the host browser. Ports 3000 and 4000 are published by the backend service. Open `http://localhost:3000` to match the configured CORS origin. `NEXT_PUBLIC_API_BASE_URL` and the optional proxy flag are passed at image build time. The build needs no backend connection. `.dockerignore` excludes local environment files and dependencies, and the runtime uses a non-root user.
+Compose builds separate `web` and `backend` services sharing one network namespace, so `http://127.0.0.1:4000` reaches the backend from both the Next.js server and the host browser. Ports 3000 and 4000 are published by the backend service. Open `http://localhost:3000` to match the configured CORS origin. `NEXT_PUBLIC_API_BASE_URL` is passed at image build time. The build needs no backend connection. `.dockerignore` excludes local environment files and dependencies, and the runtime uses a non-root user.
 
 ## Backend API
 
 The project backend is a standalone HTTP service. The frontend always retrieves data over HTTP using `NEXT_PUBLIC_API_BASE_URL`; there is no data-source selector. Backend-owned data lives in `backend/data.mts` and is consumed only by `backend/server.mts`. The frontend never imports it.
 
-| Backend endpoint | Internal Next.js endpoint | Response                                                    | Used for                                                                 |
-| ---------------- | ------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `GET /home`      | `GET /api/home`           | `HomepageData`: services, submenus, and banner              | Initial fetch with Axios in a Server Component; retry with Axios and SWR |
-| `GET /viewer`    | `GET /api/viewer`         | `ViewerData`: demo sign-in state, wallet, and notifications | Browser request after mount with Axios and SWR                           |
+| Backend endpoint | Response                                                    | Used for                                     |
+| ---------------- | ----------------------------------------------------------- | -------------------------------------------- |
+| `GET /home`      | `HomepageData`: services, submenus, and banner              | Initial server fetch; browser retry with SWR |
+| `GET /viewer`    | `ViewerData`: demo sign-in state, wallet, and notifications | Browser request after mount                  |
 
-The shared functions in `src/features/home/api/home-api.ts` use one `NEXT_PUBLIC_API_BASE_URL` for both server and browser requests. The initial homepage is fetched on the Next.js server; viewer data and homepage retries are requested by the browser. All target the same backend URL by default. This flow does not implement authentication or payments.
+The shared functions in `src/features/home/api/home-api.ts` use one `NEXT_PUBLIC_API_BASE_URL` for both server and browser requests. The initial homepage is fetched on the Next.js server; viewer data and homepage retries are requested by the browser. All target the same backend URL. This flow does not implement authentication or payments.
 
 ```dotenv
 NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:4000
@@ -53,9 +53,7 @@ BACKEND_CORS_ORIGIN=http://localhost:3000
 
 `START_BACKEND=true` starts the included backend alongside Next.js; set it to `false` when the backend already runs separately. It controls process startup only. `npm run backend` runs the backend alone. Open `http://localhost:3000` to match the exact allowed CORS origin. For another frontend origin, change `BACKEND_CORS_ORIGIN` accordingly.
 
-### Optional browser proxy
-
-Direct browser requests are the default. Set `NEXT_PUBLIC_API_USE_PROXY=true` to route browser requests through Next.js `/api`; server requests still target the same `NEXT_PUBLIC_API_BASE_URL` directly. The API functions, SWR state, and retry UI work in either mode, with no automatic fallback. Both public settings are fixed during `next build`; rebuild production output or restart development after changing them. The URL must be reachable from both server and browser and cannot contain secrets. Cross-origin authentication is not implemented.
+Server and browser requests connect directly to the backend; there are no Next.js API proxy routes. `NEXT_PUBLIC_API_BASE_URL` is fixed during `next build`; rebuild production output or restart development after changing it. The URL must be reachable from both server and browser and cannot contain secrets. Direct browser requests require exact-origin backend CORS. Cross-origin authentication is not implemented.
 
 For the browser suite, build and test against its backend port:
 
@@ -64,7 +62,7 @@ NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:4210 npm run build
 NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:4210 npm run test:e2e
 ```
 
-To verify proxy mode, add `NEXT_PUBLIC_API_USE_PROXY=true` to both commands. Test configuration supplies the exact backend CORS origin.
+Test configuration supplies the exact backend CORS origin.
 
 Configure backend scenarios in `.env.local`. Restart the server after changing them:
 

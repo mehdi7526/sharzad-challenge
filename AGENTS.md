@@ -38,9 +38,9 @@ These rules apply to this repository. Explicit user requests can change project 
 
 ## API and state boundaries
 
-- Initial homepage data is fetched by the Server Component through `home-api.ts` and an Axios instance built by `createApiRequest`. Server requests use the fetch adapter with `cache: no-store`. Do not make the server call its own internal Route Handler over HTTP.
-- Browser requests use the shared Axios instance and SWR through feature API functions and hooks. By default Route Handlers connect those browser requests to the backend; direct browser mode bypasses them.
-- Use one public HTTP(S) `NEXT_PUBLIC_API_BASE_URL` for both server and browser. Direct browser requests are the default; optional `NEXT_PUBLIC_API_USE_PROXY=true` uses `/api` in the browser only. Public settings are fixed at build time. `START_BACKEND` controls process startup, not the data source. Backend secrets must never be placed in public configuration.
+- Initial homepage data is fetched by the Server Component through `home-api.ts` and an Axios instance built by `createApiRequest`. Server requests use the fetch adapter with `cache: no-store`. Connect directly to the backend.
+- Browser requests use the shared Axios instance and SWR through feature API functions and hooks. Browser requests connect directly to the backend with exact-origin CORS.
+- Use one public HTTP(S) `NEXT_PUBLIC_API_BASE_URL` for both server and browser. There are no Next.js API proxy routes. The public URL is fixed at build time. `START_BACKEND` controls process startup, not the data source. Backend secrets must never be placed in public configuration.
 - Keep response envelope types and runtime checks aligned. Success uses `{ meta: { success: true }, data }`; errors carry `message`, `error_status`, `error_code`, and `error_fields` through the error envelope.
 - Keep API functions short: call Axios and return `response.data` (`ApiResponse<T>`), as in the reference PM/UL projects. The shared success interceptor checks only the response envelope and preserves `AxiosResponse`; endpoint payloads are not validated at runtime. Normalize transport errors centrally, display browser notifications through `useErrorHandler`, and preserve inline errors with retry in the relevant UI. Unexpected errors must remain observable.
 - SWR owns API data, loading, errors, and refreshes. Zustand owns interactive UI state; do not copy API responses into it. Keep the store scoped to its provider.

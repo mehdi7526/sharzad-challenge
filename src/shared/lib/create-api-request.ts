@@ -15,10 +15,7 @@ export function createApiRequest(config: CreateAxiosDefaults) {
       throw new Error('Invalid NEXT_PUBLIC_API_BASE_URL');
     request.baseURL = url.href;
 
-    if (typeof window !== 'undefined') {
-      if (process.env.NEXT_PUBLIC_API_USE_PROXY === 'true') request.baseURL = '/api';
-      return request;
-    }
+    if (typeof window !== 'undefined') return request;
 
     request.timeout = 8000;
     request.adapter = 'fetch';
