@@ -49,7 +49,7 @@ export const palette = {
   errorBackground: base.errorBackground,
 } as const;
 
-// Written into the server-rendered html element so CSS Modules and Ant Design share these values.
+// Written into the server-rendered html element so Tailwind and Ant Design share these values.
 export const paletteStyle = Object.fromEntries(
   Object.entries(palette).map(([name, value]) => [`--color-${name.toLowerCase()}`, value]),
 ) as CSSProperties;

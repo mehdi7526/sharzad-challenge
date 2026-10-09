@@ -8,7 +8,12 @@ import { Link, Paragraph, Text, Title } from '@/shared/components/typography';
 import type { HomepageResult, Service } from '../types';
 import { useHomepage } from '../api/use-homepage';
 import { serviceDestination, useOpenService } from '../model/use-open-service';
-import styles from '@/shared/styles/home-services.module.css';
+
+const serviceItemClassName = `
+  mb-4 flex min-w-0 w-full flex-col items-center justify-start gap-0 text-app-black
+  hover:text-app-black focus-visible:text-app-black desktop:mb-12 desktop:h-16
+  desktop:flex-row
+`;
 
 export function ServicesGrid({ initialResult }: { initialResult: HomepageResult }) {
   const { data, error, isValidating, mutate } = useHomepage(initialResult);
@@ -22,18 +27,27 @@ export function ServicesGrid({ initialResult }: { initialResult: HomepageResult 
   }
 
   return (
-    <section className={styles['services-section']} id="services" aria-busy={isValidating}>
-      <Flex className={styles['section-heading']}>
+    <section id="services" aria-busy={isValidating}>
+      <Flex
+        className={`
+          mb-4 flex h-5 items-center gap-2 desktop:h-5.5 [&_h1]:m-0
+          [&_h1]:text-[14px] [&_h1]:font-bold [&_h1]:leading-5 [&_h1]:whitespace-nowrap
+          desktop:[&_h1]:leading-5.5
+        `}
+      >
         <Title level={1}>خدمات شهرزاد</Title>
-        <span className={styles['heading-rule']} />
+        <span className="h-px flex-1 bg-app-divider" />
         {services.length > 0 ? (
-          <Link className={styles['see-all']} href="https://web.shahrzadcity.ir/shahrzad-services">
+          <Link
+            className="text-[12px] font-medium whitespace-nowrap text-app-link"
+            href="https://web.shahrzadcity.ir/shahrzad-services"
+          >
             مشاهده همه
           </Link>
         ) : null}
       </Flex>
       {errorMessage ? (
-        <div className={styles['error-state']}>
+        <div className="p-[18px] text-center">
           <Paragraph role="alert">{errorMessage}</Paragraph>
           <Button onClick={retry} loading={isValidating} disabled={isValidating}>
             تلاش دوباره
@@ -42,7 +56,7 @@ export function ServicesGrid({ initialResult }: { initialResult: HomepageResult 
         </div>
       ) : null}
       {data && services.length === 0 ? (
-        <Paragraph className={styles['error-state']} role="status">
+        <Paragraph className="p-[18px] text-center" role="status">
           در حال حاضر خدمتی برای نمایش وجود ندارد.
         </Paragraph>
       ) : null}
@@ -51,12 +65,12 @@ export function ServicesGrid({ initialResult }: { initialResult: HomepageResult 
           const destination = serviceDestination(service);
           const content = <ServiceContent service={service} />;
           return destination ? (
-            <Link className={styles['service-item']} href={destination} key={service.id}>
+            <Link className={serviceItemClassName} href={destination} key={service.id}>
               {content}
             </Link>
           ) : (
             <ActionButton
-              className={styles['service-item']}
+              className={serviceItemClassName}
               key={service.id}
               onClick={() => openService(service)}
               aria-label={service.title}
@@ -73,7 +87,13 @@ export function ServicesGrid({ initialResult }: { initialResult: HomepageResult 
 function ServiceContent({ service }: { service: Service }) {
   return (
     <>
-      <span className={styles['service-icon-wrap']}>
+      <span
+        className={`
+          relative grid h-16 w-16 flex-none place-items-center rounded-2xl bg-app-tile
+          squircle:rounded-[50%] squircle:[corner-shape:squircle] [&_img]:block [&_img]:h-10
+          [&_img]:w-10 [&_img]:object-contain
+        `}
+      >
         <Image
           src={service.image}
           alt=""
@@ -83,12 +103,26 @@ function ServiceContent({ service }: { service: Service }) {
           unoptimized={!service.image.startsWith('/')}
         />
         {service.badge ? (
-          <Text className={styles['service-badge']} aria-hidden="true">
+          <Text
+            className={`
+          absolute bottom-0 -left-0.75 h-2 w-5 rounded-sm border border-app-white
+          bg-app-badge text-app-white [font:bold_7px/5px_Arial] tracking-[1px] text-center
+        `}
+            aria-hidden="true"
+          >
             •••
           </Text>
         ) : null}
       </span>
-      <Text className={styles['service-title']}>{service.title}</Text>
+      <Text
+        className={`
+          mt-1.5 block max-w-full text-center text-[10px] font-medium leading-[1.5714285714]
+          whitespace-normal desktop:mt-0 desktop:p-2 desktop:text-right desktop:text-[14px]
+          desktop:leading-5.5 desktop:wrap-anywhere
+        `}
+      >
+        {service.title}
+      </Text>
     </>
   );
 }

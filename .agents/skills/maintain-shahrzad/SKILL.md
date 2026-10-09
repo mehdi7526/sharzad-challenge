@@ -55,6 +55,16 @@ The approved reference is `https://web.shahrzadcity.ir`. Inspect it when the use
 
 Scroll happens inside `#home-content`, not the window. `#home-scroll-body` is observed for content changes. Mobile layout starts below 1024 px in the current implementation. The desktop footer is visible only when remaining scroll is at most one pixel; it starts hidden before scroll state is measured. Retain initial synchronization and resize/content observers.
 
+Styling uses Tailwind utilities in components and shared configuration in `src/shared/styles/globals.css`. Preserve the named `group/home`, `data-compact`, custom breakpoint/support variants, and palette aliases when changing coordinated motion. Keep complete static utility names discoverable by Tailwind; use inline styles only for runtime values such as remaining scroll distance.
+
+### Tailwind editor diagnostics
+
+- Prefer the installed Tailwind version's canonical utilities over equivalent arbitrary values (for example, `gap-4` instead of `gap-[16px]`). Keep arbitrary values when they express an actual design requirement without an equivalent utility.
+- Check Tailwind IntelliSense diagnostics as well as ESLint. `suggestCanonicalClasses`, `cssConflict`, and `recommendedVariantOrder` are editor checks; a successful `npm run lint` does not establish that they are clear.
+- Keep conditional classes mutually exclusive and readable. Inspect the actual diagnostics and resolved branches before removing a class: different responsive states or branches may intentionally need different display, width, or margin values.
+- Do not silence Tailwind validation or change dimensions, transforms, timing functions, or breakpoint behavior just to remove a warning. Compare computed styles and the affected visual states after changing utilities.
+- When an editor warning cannot be reproduced, obtain its exact text and location instead of claiming that all warnings are fixed. Report only the diagnostic types actually checked.
+
 For changes around header or footer motion, inspect top, intermediate scroll, bottom, and scrolling back up. Include resize and content changes after loading or retry when relevant. Check hidden controls' keyboard access and reduced-motion behavior. Keep exact sizes needed for the approved layout; do not redesign while refactoring.
 
 ## Choose verification

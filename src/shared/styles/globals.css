@@ -2,50 +2,81 @@
 
 @import 'tailwindcss';
 
-:root {
-  color-scheme: light;
-}
-* {
-  box-sizing: border-box;
-}
-html {
-  scroll-behavior: smooth;
-}
-body {
-  margin: 0;
-  background: var(--color-white);
-  color: var(--color-inkstrong);
-  font-family: var(--font-iran-yekan), Arial, sans-serif;
-  font-size: 14px;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-.ant-app {
-  font-family: var(--font-iran-yekan), Arial, sans-serif;
-}
-button,
-a {
-  font: inherit;
-}
-button {
-  cursor: pointer;
-}
-a {
-  color: inherit;
-  text-decoration: none;
+/* Palette values are rendered on html; Tailwind aliases contain no raw colors. */
+@theme inline {
+  --color-app-white: var(--color-white);
+  --color-app-black: var(--color-black);
+  --color-app-ink: var(--color-ink);
+  --color-app-text: var(--color-text);
+  --color-app-link: var(--color-link);
+  --color-app-action: var(--color-action);
+  --color-app-white-border: var(--color-whiteborder);
+  --color-app-white-overlay: var(--color-whiteoverlay);
+  --color-app-divider: var(--color-divider);
+  --color-app-tile: var(--color-tile);
+  --color-app-badge: var(--color-badge);
+  --color-app-scanner: var(--color-scanner);
+  --color-app-body-muted: var(--color-bodymuted);
+  --color-app-modal-tile: var(--color-modaltile);
+  --color-app-modal-icon: var(--color-modalicon);
 }
 
-.route-state {
-  min-height: 60vh;
-  display: grid;
-  place-content: center;
-  gap: 16px;
-  padding: 32px;
-  text-align: center;
+@custom-variant desktop (@media (min-width: 1024px));
+@custom-variant mobile (@media (max-width: 1023px));
+@custom-variant desktop-tight (@media (min-width: 1024px) and (max-width: 1248px));
+@custom-variant squircle (@supports (corner-shape: squircle));
+@custom-variant superellipse (@supports (corner-shape: superellipse(2)));
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    margin: 0;
+    background: var(--color-white);
+    color: var(--color-inkstrong);
+    font-family: var(--font-iran-yekan), Arial, sans-serif;
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  .ant-app {
+    font-family: var(--font-iran-yekan), Arial, sans-serif;
+  }
+  button,
+  a {
+    font: inherit;
+  }
+  button {
+    cursor: pointer;
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 }
-.route-state a,
-.route-state button {
-  color: var(--color-action);
+
+/* Shared defaults stay below utilities so each consumer can override them. */
+@layer shared {
+  .ui-text {
+    @apply m-0 [font:inherit] text-inherit;
+  }
+  .ui-title {
+    @apply m-0 text-inherit;
+  }
+  .ui-action {
+    @apply h-auto min-w-0 p-0 border-0 rounded-none bg-transparent shadow-none text-inherit [font:inherit] whitespace-normal;
+    &:not(:disabled):hover,
+    &:not(:disabled):active {
+      @apply bg-transparent text-inherit;
+    }
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -57,16 +88,4 @@ a {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-}
-
-.panel-loading {
-  position: fixed;
-  bottom: 100px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1000;
-  padding: 14px 24px;
-  border-radius: 14px;
-  background: var(--color-white);
-  box-shadow: 0 4px 24px var(--color-shadowsoft);
 }

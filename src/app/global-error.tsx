@@ -1,5 +1,6 @@
 'use client';
 
+import '@/shared/styles/globals.css';
 import { palette, paletteStyle } from '@/shared/config/palette';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { ErrorFallback, type ErrorFallbackProps } from '@/shared/components/error-fallback';

@@ -70,7 +70,7 @@ The `/home` route uses Next.js loading UI and streaming to show a skeleton in th
 
 `app` contains route, layout, loading, and error boundary files. Each feature in `features` owns its UI, types, model, and adapters. Shared infrastructure lives in `shared`. To add a feature, create its feature folder and import it from the relevant route; the homepage page file does not need to grow for every change.
 
-Flex layouts, typography, buttons, and skeletons use shared Ant Design-based components. Simple containers and semantic page regions use HTML elements. Base components live in `shared/components`; global styles and CSS Modules live in `shared/styles`; shared request utilities live in `shared/lib`. Each feature defines its own API in its feature folder. ESLint restricts direct Ant Design and Axios imports from feature code.
+Flex layouts, typography, buttons, and skeletons use shared Ant Design-based components. Simple containers and semantic page regions use HTML elements. Base components live in `shared/components`; Tailwind utilities style the components, and global Tailwind configuration lives in `shared/styles`; shared request utilities live in `shared/lib`. Each feature defines its own API in its feature folder. ESLint restricts direct Ant Design and Axios imports from feature code.
 
 See [docs/architecture.md](docs/architecture.md) for the server/client boundary and architecture decisions.
 

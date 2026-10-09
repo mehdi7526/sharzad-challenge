@@ -70,7 +70,11 @@ A separate store is created for each `HomeStoreProvider`, so state is not shared
 
 ## Styles and palette
 
-Raw colors are defined only in `shared/config/palette.ts`. `paletteStyle` writes CSS variables onto the HTML element during server rendering, so the Ant Design theme and CSS Modules share one color source. Shell layout and coordinated header, wallet, and content motion are in `home-shell`; services, banner, and dropdown styling are in `home-services`; footer, navigation, and panel styles live in their respective files. Tailwind provides the four-column service grid layout. Reference image assets were not changed.
+Raw colors are defined only in `shared/config/palette.ts`. `paletteStyle` writes CSS variables onto the HTML element during server rendering. The Ant Design theme and Tailwind's `@theme inline` aliases consume these same variables; aliases do not duplicate raw color values. Reference image assets are unchanged.
+
+Components use Tailwind utilities for layout, typography, responsive styling, and transitions. Exact pixel values remain explicit arbitrary values where the approved design requires them. `shared/styles/globals.css` contains the Tailwind import, palette aliases, shared variants, base rules, shared Ant Design defaults using `@apply`, and reduced-motion support. There are no CSS Modules. The layer order places Ant Design and shared defaults below utilities so component utilities can override them predictably.
+
+The `desktop` and `mobile` variants retain the original 1024 px breakpoint; `desktop-tight` covers 1024–1248 px. `squircle` and `superellipse` retain the original browser feature checks. The viewport's named `group/home` exposes `data-compact`; mobile group variants coordinate the header background, logo, scanner, notification control, wallet, and content transforms. Accessibility attributes still come from the same store state. The footer's pixel-dependent transform remains an inline style because it depends on measured scroll distance, while its layout and transition use utilities. Static class names are written in full so Tailwind can discover them during production builds.
 
 ## Verification and limitations
 

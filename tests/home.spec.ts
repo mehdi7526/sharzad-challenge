@@ -36,15 +36,20 @@ test('scroll updates the mobile header and desktop footer', async ({ page, isMob
     const scan = page.getByRole('link', { name: 'اسکن کد', includeHidden: true });
     await content.evaluate((element) => (element.scrollTop = 120));
     await expect(logo).toHaveAttribute('aria-hidden', 'true');
+    await expect(logo).toHaveCSS('opacity', '0');
+    await expect(content).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, -74)');
     await expect(scan).toHaveAttribute('tabindex', '-1');
     await content.evaluate((element) => (element.scrollTop = 0));
     await expect(logo).toHaveAttribute('aria-hidden', 'false');
+    await expect(logo).toHaveCSS('opacity', '1');
+    await expect(content).toHaveCSS('transform', 'none');
     await expect(scan).toHaveAttribute('tabindex', '0');
   } else {
     const footer = page.locator('footer[aria-hidden]');
     await expect(footer).toHaveAttribute('aria-hidden', 'true');
     await content.evaluate((element) => (element.scrollTop = element.scrollHeight));
     await expect(footer).toHaveAttribute('aria-hidden', 'false');
+    await expect(footer).toHaveCSS('transform', 'matrix(1, 0, 0, 1, 0, 0)');
     await content.evaluate((element) => (element.scrollTop = 0));
     await expect(footer).toHaveAttribute('aria-hidden', 'true');
   }
@@ -59,4 +64,22 @@ test('desktop services menu shares the grid destination', async ({ page, isMobil
   await page.getByRole('button', { name: /خدمات شهرزاد/ }).click();
   await page.getByRole('menuitem', { name: /میوه و تره‌بار/ }).click();
   await expect(page).toHaveURL('https://web.shahrzadcity.ir/marketplace/2/grocery');
+});
+
+test('compact header styles respect resizing and reduced motion', async ({ page, isMobile }) => {
+  test.skip(isMobile);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/home');
+  await expect(page.locator('#services-grid').locator('a, button')).toHaveCount(22);
+  const content = page.locator('#home-content');
+  const logo = page.getByRole('button', { name: 'صفحه اصلی', includeHidden: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await content.evaluate((element) => (element.scrollTop = 120));
+  await expect(logo).toHaveCSS('opacity', '0');
+  await expect(logo).toHaveAttribute('tabindex', '-1');
+  await expect(content).toHaveCSS('transition-duration', '1e-05s');
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await expect(logo).toHaveCSS('opacity', '1');
+  await expect(logo).toHaveAttribute('tabindex', '0');
+  await expect(content).toHaveCSS('transform', 'none');
 });

@@ -7,7 +7,10 @@ import { useHomeStore, HomeStoreProvider } from '../model/home-store';
 const HomePanels = dynamic(() => import('./home-panels'), {
   ssr: false,
   loading: () => (
-    <div className="panel-loading" role="status">
+    <div
+      className="fixed bottom-25 left-1/2 z-1000 rounded-[14px] bg-app-white px-6 py-3.5 transform-[translateX(-50%)] shadow-[0_4px_24px_var(--color-shadowsoft)]"
+      role="status"
+    >
       در حال آماده‌سازی پنل…
     </div>
   ),

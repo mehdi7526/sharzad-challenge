@@ -9,7 +9,14 @@ import { Paragraph, Title } from '@/shared/components/typography';
 import { useMessage } from '@/shared/components/use-message';
 import { useHomeStore } from '../model/home-store';
 import { useViewer } from '../api/use-viewer';
-import styles from '@/shared/styles/home-panels.module.css';
+
+const panelContentClassName = `
+  flex flex-col items-center pt-3.5 px-2.5 pb-1 text-center [&_h2]:mt-2.5
+  [&_h2]:mb-1.75 [&_h2]:mx-0 [&_h2]:text-[18px] [&_div.ant-typography]:max-w-87.5
+  [&_div.ant-typography]:m-0 [&_div.ant-typography]:mb-4.5
+  [&_div.ant-typography]:text-app-body-muted [&_div.ant-typography]:text-[13px]
+  [&_div.ant-typography]:leading-[1.9]
+`;
 
 export default function HomePanels() {
   const { data, error, isLoading, isValidating, mutate } = useViewer();
@@ -33,10 +40,10 @@ export default function HomePanels() {
   return (
     <>
       <Modal open={panel === 'service'} onCancel={() => setPanel(null)}>
-        <Flex className={styles['modal-content']}>
+        <Flex className={panelContentClassName}>
           {selectedService ? (
             <Image
-              className={styles['modal-service-icon']}
+              className="h-[74px] w-18.5 rounded-[20px] bg-app-modal-tile object-contain"
               src={selectedService.image}
               alt=""
               width={74}
@@ -55,8 +62,8 @@ export default function HomePanels() {
       </Modal>
 
       <Modal open={panel === 'wallet'} onCancel={() => setPanel(null)}>
-        <Flex className={styles['modal-content']}>
-          <span className={styles['modal-icon']}>
+        <Flex className={panelContentClassName}>
+          <span className="grid h-15 w-15 place-items-center rounded-[19px] bg-app-modal-icon text-app-action">
             <Wallet2 size={32} />
           </span>
           <Title level={2}>کیف پول شهرزاد</Title>
@@ -76,8 +83,8 @@ export default function HomePanels() {
         </Flex>
       </Modal>
       <Modal open={panel === 'notifications'} onCancel={() => setPanel(null)}>
-        <Flex className={styles['modal-content']}>
-          <span className={styles['modal-icon']}>
+        <Flex className={panelContentClassName}>
+          <span className="grid h-15 w-15 place-items-center rounded-[19px] bg-app-modal-icon text-app-action">
             <NotificationBing size={30} />
           </span>
           <Title level={2}>اعلان‌ها</Title>
@@ -93,8 +100,8 @@ export default function HomePanels() {
         </Flex>
       </Modal>
       <Modal open={panel === 'profile'} onCancel={() => setPanel(null)}>
-        <Flex className={styles['modal-content']}>
-          <span className={styles['modal-icon']}>
+        <Flex className={panelContentClassName}>
+          <span className="grid h-15 w-15 place-items-center rounded-[19px] bg-app-modal-icon text-app-action">
             <User size={30} />
           </span>
           <Title level={2}>حساب کاربری</Title>

@@ -5,7 +5,6 @@ import { Link } from '@/shared/components/typography';
 import type { HomepageResult } from '../types';
 import { useHomepage } from '../api/use-homepage';
 import { serviceDestination, useOpenService } from '../model/use-open-service';
-import styles from '@/shared/styles/home-services.module.css';
 
 export function PromoBanner({ initialResult }: { initialResult?: HomepageResult }) {
   const { data } = useHomepage(initialResult);
@@ -15,9 +14,12 @@ export function PromoBanner({ initialResult }: { initialResult?: HomepageResult 
   if (!banner || !service) return null;
   const destination = serviceDestination(service);
   return (
-    <section className={styles['hero-section']} aria-label="پیشنهادهای ویژه">
+    <section className="mb-4 pb-7" aria-label="پیشنهادهای ویژه">
       <Link
-        className={styles['hero-banner']}
+        className={`
+          block overflow-hidden rounded-[30px] superellipse:[corner-shape:superellipse(2)]
+          [&_img]:block [&_img]:h-auto [&_img]:w-full [&_img]:aspect-[2.48] [&_img]:object-cover
+        `}
         href={destination ?? '#'}
         onClick={(event) => {
           if (destination) return;

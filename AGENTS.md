@@ -50,9 +50,10 @@ These rules apply to this repository. Explicit user requests can change project 
 
 ## Styling and scroll state
 
-- Define raw UI colors in `shared/config/palette.ts`. Ant Design and CSS Modules share that palette through the theme and server-rendered CSS custom properties. Preserve colors embedded in reference assets.
-- Use CSS Modules for precise layout and animations. Tailwind currently handles the simple service grid; avoid expanding the styling stack without a concrete need.
-- Keep coordinated shell motion in the shell stylesheet and other component responsibilities in their existing stylesheets.
+- Define raw UI colors in `shared/config/palette.ts`. Ant Design and Tailwind share that palette through the theme and server-rendered CSS custom properties. Preserve colors embedded in reference assets.
+- Use Tailwind utilities for component layout and styling, including precise arbitrary values and coordinated animations. Keep palette aliases, breakpoint/support variants, base rules, and shared Ant Design defaults in `shared/styles/globals.css`; do not reintroduce CSS Modules.
+- Prefer canonical utilities supported by the installed Tailwind version (for example, `gap-4` instead of `gap-[16px]`). Use arbitrary values only when needed for the approved design. Check Tailwind IntelliSense suggestions, variant order, and conflicting classes separately from ESLint; keep conditional classes mutually exclusive and preserve computed styles. Do not disable diagnostics to hide warnings. See the project skill for the diagnostic workflow.
+- Keep coordinated shell motion tied to `group/home` and `data-compact`; keep other component utilities with their owning components.
 - Update scroll state on initial mount, scroll, resize, and content-height changes. Loading, retry, and image changes must not leave footer state stale.
 - Subscribe to the smallest useful state. Only consumers that need pixel distance should render from it; avoid making the whole shell respond to every scroll event.
 
